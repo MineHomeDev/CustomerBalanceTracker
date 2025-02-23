@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft, Search } from "lucide-react";
 import { QRCodeScanner } from '@/components/QRCodeScanner';
 import { useState } from "react";
 import { useLocation } from 'wouter';
@@ -30,28 +30,42 @@ export default function CashierPage() {
   if (!user?.isCashier) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-destructive">Access denied. Cashiers only.</p>
+        <p className="text-destructive">Zugriff verweigert. Nur für Kassierer.</p>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Cashier Dashboard</h1>
-          <Button variant="outline" onClick={() => setLocation("/")}>
-            User Dashboard
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setLocation("/")}
+              className="lg:hidden"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-xl font-bold">Kassierer Dashboard</h1>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation("/")}
+            className="hidden lg:flex"
+          >
+            Zum Guthaben
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid gap-6">
+      <main className="container mx-auto p-4 sm:p-6 md:p-8">
+        <div className="grid gap-6 max-w-2xl mx-auto">
           <QRCodeScanner />
           <Card>
             <CardHeader>
-              <CardTitle>Manage Balance</CardTitle>
+              <CardTitle>Guthaben verwalten</CardTitle>
             </CardHeader>
             <CardContent>
               <BalanceForm />
@@ -86,13 +100,13 @@ function BalanceForm() {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       form.reset();
       toast({
-        title: "Success",
-        description: "Balance updated successfully",
+        title: "Erfolg",
+        description: "Guthaben wurde aktualisiert",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: "Fehler",
         description: error.message,
         variant: "destructive",
       });
@@ -107,87 +121,102 @@ function BalanceForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((data) => balanceMutation.mutate(data))} className="space-y-4">
+      <form onSubmit={form.handleSubmit((data) => balanceMutation.mutate(data))} className="space-y-6">
         <FormField
           control={form.control}
           name="userId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>User</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Search by username..."
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </FormControl>
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : users?.length ? (
-                <div className="border rounded-md p-2 space-y-2">
-                  {users.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex justify-between items-center p-2 hover:bg-accent rounded cursor-pointer"
-                      onClick={() => field.onChange(user.id)}
-                    >
-                      <span>{user.username}</span>
-                      <span>${(user.balance / 100).toFixed(2)}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Transaction Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormLabel>Benutzer</FormLabel>
+              <div className="relative">
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      placeholder="Nach Benutzername suchen..."
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="deposit">Deposit</SelectItem>
-                  <SelectItem value="withdrawal">Withdrawal</SelectItem>
-                </SelectContent>
-              </Select>
+                {isLoading ? (
+                  <div className="absolute w-full mt-1 p-2 border rounded-md bg-background">
+                    <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                  </div>
+                ) : users?.length ? (
+                  <div className="absolute w-full mt-1 border rounded-md bg-background shadow-lg max-h-48 overflow-auto">
+                    {users.map((user) => (
+                      <div
+                        key={user.id}
+                        className="flex justify-between items-center p-3 hover:bg-accent cursor-pointer"
+                        onClick={() => {
+                          field.onChange(user.id);
+                          setSearchTerm(user.username);
+                        }}
+                      >
+                        <span className="font-medium">{user.username}</span>
+                        <span className="text-muted-foreground">
+                          €{(user.balance / 100).toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Amount ($)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid gap-6 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Transaktionstyp</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Typ auswählen" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="deposit">Einzahlung</SelectItem>
+                    <SelectItem value="withdrawal">Auszahlung</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="amount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Betrag (€)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    {...field}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Beschreibung</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -201,7 +230,7 @@ function BalanceForm() {
           className="w-full"
           disabled={balanceMutation.isPending}
         >
-          {balanceMutation.isPending ? "Processing..." : "Update Balance"}
+          {balanceMutation.isPending ? "Verarbeite..." : "Guthaben aktualisieren"}
         </Button>
       </form>
     </Form>
