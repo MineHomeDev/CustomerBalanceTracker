@@ -25,17 +25,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(transactions);
   });
 
+  // Get user points
+  app.get("/api/points", requireAuth, async (req, res) => {
+    const points = await storage.getPoints(req.user!.id);
+    res.json(points);
+  });
+
+  // Get user achievements
+  app.get("/api/achievements", requireAuth, async (req, res) => {
+    const achievements = await storage.getAchievements(req.user!.id);
+    res.json(achievements);
+  });
+
   // Cashier routes for managing balances
   app.post("/api/balance", requireCashier, async (req, res) => {
     const { userId, amount, type, description } = req.body;
     const user = await storage.getUser(userId);
-    
+
     if (!user) {
       return res.status(404).send("User not found");
     }
 
-    const newBalance = type === "deposit" 
-      ? user.balance + amount 
+    const newBalance = type === "deposit"
+      ? user.balance + amount
       : user.balance - amount;
 
     if (newBalance < 0) {
@@ -49,10 +61,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       description
     });
 
+    // Award points for transactions
+    if (type === "deposit") {
+      // Award 1 point for every 2 EUR deposited
+      const pointsToAward = Math.floor(amount / 200);
+      if (pointsToAward > 0) {
+        await storage.addPoints(
+          userId,
+          pointsToAward,
+          `Points for ${amount / 100}€ deposit`
+        );
+      }
+
+      // Check for achievements
+      const totalPoints = user.points + pointsToAward;
+      if (totalPoints >= 100 && !(await hasAchievement(userId, "points_100"))) {
+        await storage.unlockAchievement(
+          userId,
+          "points_100",
+          "Punktesammler",
+          "Sammle 100 Punkte"
+        );
+      }
+    }
+
     const updatedUser = await storage.updateBalance(userId, newBalance);
     res.json(updatedUser);
   });
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+async function hasAchievement(userId: number, type: string): Promise<boolean> {
+  const achievements = await storage.getAchievements(userId);
+  return achievements.some(a => a.type === type);
 }

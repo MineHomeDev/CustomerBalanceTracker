@@ -1,5 +1,5 @@
-import { User, InsertUser, Transaction, InsertTransaction } from "@shared/schema";
-import { users, transactions } from "@shared/schema";
+import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint, Achievement, InsertAchievement } from "@shared/schema";
+import { users, transactions, points, achievements } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import session from "express-session";
@@ -15,6 +15,10 @@ export interface IStorage {
   updateBalance(userId: number, newBalance: number): Promise<User>;
   getTransactions(userId: number): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  addPoints(userId: number, amount: number, reason: string): Promise<Point>;
+  getPoints(userId: number): Promise<Point[]>;
+  unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement>;
+  getAchievements(userId: number): Promise<Achievement[]>;
   sessionStore: session.Store;
 }
 
@@ -72,6 +76,56 @@ export class DatabaseStorage implements IStorage {
       .values(insertTransaction)
       .returning();
     return transaction;
+  }
+
+  async addPoints(userId: number, amount: number, reason: string): Promise<Point> {
+    // First update the user's total points
+    await db
+      .update(users)
+      .set({ points: db.raw('points + ?', [amount]) })
+      .where(eq(users.id, userId));
+
+    // Then create a points record
+    const [point] = await db
+      .insert(points)
+      .values({
+        userId,
+        amount,
+        reason,
+      })
+      .returning();
+
+    return point;
+  }
+
+  async getPoints(userId: number): Promise<Point[]> {
+    return await db
+      .select()
+      .from(points)
+      .where(eq(points.userId, userId))
+      .orderBy(points.timestamp);
+  }
+
+  async unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement> {
+    const [achievement] = await db
+      .insert(achievements)
+      .values({
+        userId,
+        type,
+        name,
+        description,
+      })
+      .returning();
+
+    return achievement;
+  }
+
+  async getAchievements(userId: number): Promise<Achievement[]> {
+    return await db
+      .select()
+      .from(achievements)
+      .where(eq(achievements.userId, userId))
+      .orderBy(achievements.unlockedAt);
   }
 }
 
