@@ -1,7 +1,7 @@
 import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint, Achievement, InsertAchievement } from "@shared/schema";
 import { users, transactions, points, achievements } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, ilike } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -19,6 +19,7 @@ export interface IStorage {
   getPoints(userId: number): Promise<Point[]>;
   unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement>;
   getAchievements(userId: number): Promise<Achievement[]>;
+  searchUsers(query: string): Promise<User[]>;
   sessionStore: session.Store;
 }
 
@@ -40,6 +41,14 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user;
+  }
+
+  async searchUsers(query: string): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(ilike(users.username, `%${query}%`))
+      .limit(10);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

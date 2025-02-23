@@ -104,7 +104,7 @@ export default function CashierPage() {
 
 function BalanceForm() {
   const { toast } = useToast();
-  const form = useForm({
+  const form = useForm<z.infer<typeof balanceSchema>>({
     resolver: zodResolver(balanceSchema),
     defaultValues: {
       amount: 0,
@@ -141,6 +141,12 @@ function BalanceForm() {
   const [searchTerm, setSearchTerm] = useState("");
   const { data: users, isLoading } = useQuery<User[]>({
     queryKey: ["/api/users", searchTerm],
+    queryFn: async () => {
+      if (!searchTerm) return [];
+      const res = await fetch(`/api/users?search=${encodeURIComponent(searchTerm)}`);
+      if (!res.ok) throw new Error("Failed to fetch users");
+      return res.json();
+    },
     enabled: Boolean(searchTerm),
   });
 

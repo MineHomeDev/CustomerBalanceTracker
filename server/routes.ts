@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
+import { eq, ilike } from "drizzle-orm";
+import { users } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -35,6 +37,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/achievements", requireAuth, async (req, res) => {
     const achievements = await storage.getAchievements(req.user!.id);
     res.json(achievements);
+  });
+
+  // Search users (for cashiers only)
+  app.get("/api/users", requireCashier, async (req, res) => {
+    const search = req.query.search as string;
+    if (!search) {
+      return res.json([]);
+    }
+
+    const foundUsers = await storage.searchUsers(search);
+    res.json(foundUsers);
   });
 
   // Cashier routes for managing balances
