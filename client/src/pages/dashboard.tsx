@@ -7,9 +7,11 @@ import { Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { QRCodeGenerator } from '@/components/QRCodeGenerator';
+import { useLocation } from 'wouter';
 
 export default function Dashboard() {
   const { user, logoutMutation } = useAuth();
+  const [, setLocation] = useLocation();
   const { data: transactions, isLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
   });
@@ -23,7 +25,7 @@ export default function Dashboard() {
           <h1 className="text-xl font-bold">Balance Management System</h1>
           <div className="flex items-center gap-4">
             {user.isCashier && (
-              <Button variant="outline" onClick={() => window.location.href = "/cashier"}>
+              <Button variant="outline" onClick={() => setLocation("/cashier")}>
                 Cashier Dashboard
               </Button>
             )}

@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { QRCodeScanner } from '@/components/QRCodeScanner';
 import { useState } from "react";
+import { useLocation } from 'wouter';
 
 const balanceSchema = z.object({
   userId: z.number(),
@@ -24,7 +25,7 @@ const balanceSchema = z.object({
 
 export default function CashierPage() {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   if (!user?.isCashier) {
     return (
@@ -39,7 +40,7 @@ export default function CashierPage() {
       <header className="border-b">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <h1 className="text-xl font-bold">Cashier Dashboard</h1>
-          <Button variant="outline" onClick={() => window.location.href = "/"}>
+          <Button variant="outline" onClick={() => setLocation("/")}>
             User Dashboard
           </Button>
         </div>
