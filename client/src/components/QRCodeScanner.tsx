@@ -44,46 +44,69 @@ export function QRCodeScanner() {
     },
   });
 
-  useEffect(() => {
-    if (!scanning) {
-      scannerRef.current?.stop();
-      return;
+  const stopScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current = null;
+      } catch (error) {
+        console.error('Error stopping scanner:', error);
+      }
+    }
+    setScanning(false);
+  };
+
+  const startScanner = async () => {
+    if (!scannerRef.current) {
+      const scanner = new Html5Qrcode('qr-reader');
+      scannerRef.current = scanner;
     }
 
-    const scanner = new Html5Qrcode('qr-reader');
-    scannerRef.current = scanner;
-
-    scanner.start(
-      { facingMode: 'environment' },
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-      },
-      (decodedText) => {
-        try {
-          const data: QRData = JSON.parse(decodedText);
-          // Validate timestamp (e.g., not older than 5 minutes)
-          const isValid = Date.now() - data.timestamp < 5 * 60 * 1000;
-          if (!isValid) {
-            throw new Error('QR-Code ist abgelaufen');
+    try {
+      await scannerRef.current.start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+        },
+        async (decodedText) => {
+          try {
+            const data: QRData = JSON.parse(decodedText);
+            const isValid = Date.now() - data.timestamp < 5 * 60 * 1000;
+            if (!isValid) {
+              throw new Error('QR-Code ist abgelaufen');
+            }
+            await stopScanner();
+            processMutation.mutate(data);
+          } catch (err) {
+            toast({
+              title: 'Fehler',
+              description: 'Ungültiger QR-Code',
+              variant: 'destructive',
+            });
           }
-          processMutation.mutate(data);
-          scanner.stop();
-        } catch (err) {
-          toast({
-            title: 'Fehler',
-            description: 'Ungültiger QR-Code',
-            variant: 'destructive',
-          });
-        }
-      },
-      () => {}, // Ignore errors to prevent console spam
-    );
+        },
+        () => {}, // Ignore errors to prevent console spam
+      );
+      setScanning(true);
+    } catch (error) {
+      console.error('Error starting scanner:', error);
+      toast({
+        title: 'Fehler',
+        description: 'Scanner konnte nicht gestartet werden',
+        variant: 'destructive',
+      });
+      setScanning(false);
+    }
+  };
 
+  useEffect(() => {
     return () => {
-      scanner.stop().catch(console.error);
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(console.error);
+      }
     };
-  }, [scanning]);
+  }, []);
 
   return (
     <Card>
@@ -94,7 +117,7 @@ export function QRCodeScanner() {
         <div id="qr-reader" className="w-full max-w-sm mx-auto" />
         <Button
           className="w-full"
-          onClick={() => setScanning(!scanning)}
+          onClick={scanning ? stopScanner : startScanner}
           disabled={processMutation.isPending}
         >
           {processMutation.isPending
