@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
+import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 
 export default function Dashboard() {
   const { user, logoutMutation } = useAuth();
@@ -43,6 +44,8 @@ export default function Dashboard() {
               <p className="text-4xl font-bold">${(user.balance / 100).toFixed(2)}</p>
             </CardContent>
           </Card>
+
+          <QRCodeGenerator />
 
           <Card>
             <CardHeader>

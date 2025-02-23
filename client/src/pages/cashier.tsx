@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { QRCodeScanner } from '@/components/QRCodeScanner';
+import { useState } from "react";
 
 const balanceSchema = z.object({
   userId: z.number(),
@@ -44,14 +46,17 @@ export default function CashierPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Manage Balance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <BalanceForm />
-          </CardContent>
-        </Card>
+        <div className="grid gap-6">
+          <QRCodeScanner />
+          <Card>
+            <CardHeader>
+              <CardTitle>Manage Balance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <BalanceForm />
+            </CardContent>
+          </Card>
+        </div>
       </main>
     </div>
   );
@@ -134,7 +139,7 @@ function BalanceForm() {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="type"
@@ -156,7 +161,7 @@ function BalanceForm() {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="amount"
@@ -175,7 +180,7 @@ function BalanceForm() {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="description"
@@ -189,7 +194,7 @@ function BalanceForm() {
             </FormItem>
           )}
         />
-        
+
         <Button
           type="submit"
           className="w-full"
