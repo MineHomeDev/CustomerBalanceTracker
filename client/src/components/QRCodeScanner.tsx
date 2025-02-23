@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 
 interface QRData {
   userId: number;
@@ -114,18 +116,36 @@ export function QRCodeScanner() {
         <CardTitle>QR-Code Scanner</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div id="qr-reader" className="w-full max-w-sm mx-auto" />
-        <Button
-          className="w-full"
-          onClick={scanning ? stopScanner : startScanner}
-          disabled={processMutation.isPending}
-        >
-          {processMutation.isPending
-            ? 'Verarbeite...'
-            : scanning
-            ? 'Scanner beenden'
-            : 'QR-Code scannen'}
-        </Button>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          id="qr-reader"
+          className="w-full max-w-sm mx-auto"
+        />
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            className="w-full"
+            onClick={scanning ? stopScanner : startScanner}
+            disabled={processMutation.isPending}
+          >
+            {processMutation.isPending ? (
+              <>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                >
+                  <Loader2 className="h-5 w-5 mr-2" />
+                </motion.div>
+                Verarbeite...
+              </>
+            ) : scanning ? (
+              'Scanner beenden'
+            ) : (
+              'QR-Code scannen'
+            )}
+          </Button>
+        </motion.div>
       </CardContent>
     </Card>
   );

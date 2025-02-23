@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { motion } from 'framer-motion';
 
 export function QRCodeGenerator() {
   const { user } = useAuth();
@@ -47,16 +48,29 @@ export function QRCodeGenerator() {
             placeholder="Betrag eingeben"
           />
         </div>
-        <Button onClick={generateQRCode} className="w-full" disabled={!amount}>
-          QR-Code generieren
-        </Button>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button onClick={generateQRCode} className="w-full" disabled={!amount}>
+            QR-Code generieren
+          </Button>
+        </motion.div>
         {qrUrl && (
-          <div className="flex flex-col items-center gap-2 pt-4">
-            <img src={qrUrl} alt="QR Code" className="w-48 h-48" />
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center gap-2 pt-4"
+          >
+            <motion.img 
+              src={qrUrl} 
+              alt="QR Code" 
+              className="w-48 h-48"
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200 }}
+            />
             <p className="text-sm text-muted-foreground">
               Scannen Sie diesen Code mit der Kassierer-App
             </p>
-          </div>
+          </motion.div>
         )}
       </CardContent>
     </Card>

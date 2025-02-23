@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 import { useLocation } from 'wouter';
+import { AnimatedContainer, AnimatedListItem } from "@/components/ui/animated-container";
+import { motion } from "framer-motion";
 
 export default function Dashboard() {
   const { user, logoutMutation } = useAuth();
@@ -23,7 +25,12 @@ export default function Dashboard() {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Wallet className="h-6 w-6 text-primary" />
+            <motion.div
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Wallet className="h-6 w-6 text-primary" />
+            </motion.div>
             <h1 className="text-xl font-bold">Balance System</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -36,85 +43,110 @@ export default function Dashboard() {
                 Cashier Dashboard
               </Button>
             )}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => logoutMutation.mutate()}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => logoutMutation.mutate()}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </motion.div>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto p-4 sm:p-6 md:p-8 space-y-6">
         <div className="grid gap-6">
-          <Card className="border-2">
-            <CardHeader>
-              <CardTitle className="text-lg text-muted-foreground">Aktuelles Guthaben</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold text-primary">
-                €{(user.balance / 100).toFixed(2)}
-              </p>
-            </CardContent>
-          </Card>
+          <AnimatedContainer>
+            <Card className="border-2">
+              <CardHeader>
+                <CardTitle className="text-lg text-muted-foreground">Aktuelles Guthaben</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <motion.p 
+                  className="text-4xl font-bold text-primary"
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200 }}
+                >
+                  €{(user.balance / 100).toFixed(2)}
+                </motion.p>
+              </CardContent>
+            </Card>
+          </AnimatedContainer>
 
-          <QRCodeGenerator />
+          <AnimatedContainer>
+            <QRCodeGenerator />
+          </AnimatedContainer>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Transaktionen</CardTitle>
-              <Badge variant="outline" className="font-normal">
-                {transactions?.length || 0} Einträge
-              </Badge>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center p-4">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                </div>
-              ) : transactions?.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Noch keine Transaktionen vorhanden
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {transactions?.map((transaction) => (
-                    <div
-                      key={transaction.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+          <AnimatedContainer>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Transaktionen</CardTitle>
+                <Badge variant="outline" className="font-normal">
+                  {transactions?.length || 0} Einträge
+                </Badge>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex justify-center p-4">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     >
-                      <div>
-                        <p className="font-medium">{transaction.description}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatDistanceToNow(new Date(transaction.timestamp), { addSuffix: true })}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={transaction.type === "deposit" ? "default" : "destructive"}>
-                          {transaction.type === "deposit" ? "+" : "-"}€{(transaction.amount / 100).toFixed(2)}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                      <Loader2 className="h-6 w-6 text-primary" />
+                    </motion.div>
+                  </div>
+                ) : transactions?.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    Noch keine Transaktionen vorhanden
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {transactions?.map((transaction) => (
+                      <AnimatedListItem key={transaction.id}>
+                        <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                          <div>
+                            <p className="font-medium">{transaction.description}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {formatDistanceToNow(new Date(transaction.timestamp), { addSuffix: true })}
+                            </p>
+                          </div>
+                          <motion.div 
+                            whileHover={{ scale: 1.05 }}
+                            className="flex items-center gap-2"
+                          >
+                            <Badge variant={transaction.type === "deposit" ? "default" : "destructive"}>
+                              {transaction.type === "deposit" ? "+" : "-"}€{(transaction.amount / 100).toFixed(2)}
+                            </Badge>
+                          </motion.div>
+                        </div>
+                      </AnimatedListItem>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </AnimatedContainer>
         </div>
       </main>
 
       {user.isCashier && (
-        <div className="fixed bottom-4 right-4 sm:hidden">
+        <motion.div 
+          className="fixed bottom-4 right-4 sm:hidden"
+          initial={{ y: 100 }}
+          animate={{ y: 0 }}
+          transition={{ type: "spring", stiffness: 200 }}
+        >
           <Button 
             className="shadow-lg"
             onClick={() => setLocation("/cashier")}
           >
             Zur Kasse
           </Button>
-        </div>
+        </motion.div>
       )}
     </div>
   );
