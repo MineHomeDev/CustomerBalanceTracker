@@ -139,12 +139,13 @@ function BalanceForm() {
   });
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
   const { data: users, isLoading } = useQuery<User[]>({
     queryKey: ["/api/users", searchTerm],
     queryFn: async () => {
       if (!searchTerm) return [];
-      const res = await fetch(`/api/users?search=${encodeURIComponent(searchTerm)}`);
-      if (!res.ok) throw new Error("Failed to fetch users");
+      const res = await apiRequest("GET", `/api/users?search=${encodeURIComponent(searchTerm)}`);
       return res.json();
     },
     enabled: Boolean(searchTerm),
@@ -165,7 +166,12 @@ function BalanceForm() {
                     <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                     <Input
                       placeholder="Nach Benutzername suchen..."
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      value={selectedUser ? selectedUser.username : searchTerm}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setSelectedUser(null);
+                        field.onChange(undefined);
+                      }}
                       className="pl-10"
                     />
                   </div>
@@ -175,14 +181,15 @@ function BalanceForm() {
                     <Loader2 className="h-4 w-4 animate-spin mx-auto" />
                   </div>
                 ) : users?.length ? (
-                  <div className="absolute w-full mt-1 border rounded-md bg-background shadow-lg max-h-48 overflow-auto">
+                  <div className="absolute w-full mt-1 border rounded-md bg-background shadow-lg max-h-48 overflow-auto z-50">
                     {users.map((user) => (
                       <div
                         key={user.id}
                         className="flex justify-between items-center p-3 hover:bg-accent cursor-pointer"
                         onClick={() => {
                           field.onChange(user.id);
-                          setSearchTerm(user.username);
+                          setSelectedUser(user);
+                          setSearchTerm("");
                         }}
                       >
                         <span className="font-medium">{user.username}</span>
@@ -232,6 +239,7 @@ function BalanceForm() {
                   <Input
                     type="number"
                     step="0.01"
+                    min="0"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value))}
                   />
