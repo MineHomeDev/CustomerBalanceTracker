@@ -43,12 +43,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/search", requireCashier, async (req, res) => {
     const search = req.query.search as string;
     if (!search || search.length < 2) {
+      console.log('Search query too short:', search);
       return res.json([]);
     }
 
     try {
+      console.log('Starting user search with query:', search);
       const foundUsers = await storage.searchUsers(search);
-      console.log('Found users:', foundUsers); // Debug log
+      console.log('Search results:', foundUsers);
       res.json(foundUsers);
     } catch (error) {
       console.error('Error searching users:', error);

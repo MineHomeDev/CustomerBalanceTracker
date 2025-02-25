@@ -79,10 +79,10 @@ function BalanceForm() {
     queryKey: ["/api/users/search", searchTerm],
     queryFn: async () => {
       if (!searchTerm || searchTerm.length < 2) return [];
-      console.log('Searching for:', searchTerm);
+      console.log('Frontend: Searching for:', searchTerm);
       const res = await apiRequest("GET", `/api/users/search?search=${encodeURIComponent(searchTerm)}`);
       const data = await res.json();
-      console.log('Search results:', data);
+      console.log('Frontend: Search results:', data);
       return data;
     },
     enabled: searchTerm.length >= 2,
@@ -105,7 +105,9 @@ function BalanceForm() {
                       placeholder="Nach Benutzername suchen..."
                       value={selectedUser ? selectedUser.username : searchTerm}
                       onChange={(e) => {
-                        setSearchTerm(e.target.value);
+                        const value = e.target.value;
+                        console.log('Search input changed:', value);
+                        setSearchTerm(value);
                         setSelectedUser(null);
                         field.onChange(undefined);
                       }}
@@ -125,6 +127,7 @@ function BalanceForm() {
                         key={user.id}
                         className="flex justify-between items-center p-3 hover:bg-accent cursor-pointer"
                         onClick={() => {
+                          console.log('Selected user:', user);
                           field.onChange(user.id);
                           setSelectedUser(user);
                           setSearchTerm("");

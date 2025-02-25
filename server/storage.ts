@@ -45,13 +45,18 @@ export class DatabaseStorage implements IStorage {
 
   async searchUsers(query: string): Promise<User[]> {
     console.log('Searching users with query:', query);
-    const searchResults = await db
-      .select()
-      .from(usersTable)
-      .where(ilike(usersTable.username, `%${query}%`))
-      .limit(10);
-    console.log('Search results:', searchResults);
-    return searchResults;
+    try {
+      const searchResults = await db
+        .select()
+        .from(usersTable)
+        .where(ilike(usersTable.username, `%${query}%`))
+        .limit(10);
+      console.log('Search results:', searchResults);
+      return searchResults;
+    } catch (error) {
+      console.error('Database search error:', error);
+      throw error;
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
