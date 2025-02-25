@@ -36,6 +36,9 @@ const AnimatedContainer = ({ children }: { children: React.ReactNode }) => (
 
 function BalanceForm() {
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
   const form = useForm<z.infer<typeof balanceSchema>>({
     resolver: zodResolver(balanceSchema),
     defaultValues: {
@@ -56,6 +59,8 @@ function BalanceForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       form.reset();
+      setSelectedUser(null);
+      setSearchTerm("");
       toast({
         title: "Erfolg",
         description: "Guthaben wurde aktualisiert",
@@ -70,17 +75,14 @@ function BalanceForm() {
     },
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-
-  const { data: users, isLoading } = useQuery<User[]>({
+  const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ["/api/users/search", searchTerm],
     queryFn: async () => {
       if (!searchTerm || searchTerm.length < 2) return [];
-      console.log('Searching for:', searchTerm); // Debug log
+      console.log('Searching for:', searchTerm);
       const res = await apiRequest("GET", `/api/users/search?search=${encodeURIComponent(searchTerm)}`);
       const data = await res.json();
-      console.log('Search results:', data); // Debug log
+      console.log('Search results:', data);
       return data;
     },
     enabled: searchTerm.length >= 2,
@@ -111,11 +113,12 @@ function BalanceForm() {
                     />
                   </div>
                 </FormControl>
-                {isLoading ? (
+                {isLoading && (
                   <div className="absolute w-full mt-1 p-2 border rounded-md bg-background">
                     <Loader2 className="h-4 w-4 animate-spin mx-auto" />
                   </div>
-                ) : users?.length ? (
+                )}
+                {!isLoading && users.length > 0 && !selectedUser && (
                   <div className="absolute w-full mt-1 border rounded-md bg-background shadow-lg max-h-48 overflow-auto z-50">
                     {users.map((user) => (
                       <div
@@ -134,7 +137,7 @@ function BalanceForm() {
                       </div>
                     ))}
                   </div>
-                ) : null}
+                )}
               </div>
               <FormMessage />
             </FormItem>
@@ -176,7 +179,7 @@ function BalanceForm() {
                     step="0.01"
                     min="0"
                     {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                   />
                 </FormControl>
                 <FormMessage />

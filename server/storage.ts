@@ -1,5 +1,5 @@
 import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint, Achievement, InsertAchievement } from "@shared/schema";
-import { users, transactions, points, achievements } from "@shared/schema";
+import { users as usersTable, transactions, points, achievements } from "@shared/schema";
 import { db } from "./db";
 import { eq, ilike } from "drizzle-orm";
 import session from "express-session";
@@ -34,40 +34,43 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
     return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.username, username));
     return user;
   }
 
   async searchUsers(query: string): Promise<User[]> {
-    console.log('Searching users with query:', query); // Debug log
-    const users = await db
+    console.log('Searching users with query:', query);
+    const searchResults = await db
       .select()
-      .from(users)
-      .where(ilike(users.username, `%${query}%`))
+      .from(usersTable)
+      .where(ilike(usersTable.username, `%${query}%`))
       .limit(10);
-    console.log('Search results:', users); // Debug log
-    return users;
+    console.log('Search results:', searchResults);
+    return searchResults;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values({
-      ...insertUser,
-      balance: 0,
-      isCashier: insertUser.isCashier || false
-    }).returning();
+    const [user] = await db
+      .insert(usersTable)
+      .values({
+        ...insertUser,
+        balance: 0,
+        isCashier: insertUser.isCashier || false
+      })
+      .returning();
     return user;
   }
 
   async updateBalance(userId: number, newBalance: number): Promise<User> {
     const [user] = await db
-      .update(users)
+      .update(usersTable)
       .set({ balance: newBalance })
-      .where(eq(users.id, userId))
+      .where(eq(usersTable.id, userId))
       .returning();
 
     if (!user) throw new Error("User not found");
@@ -93,9 +96,9 @@ export class DatabaseStorage implements IStorage {
   async addPoints(userId: number, amount: number, reason: string): Promise<Point> {
     // First update the user's total points
     await db
-      .update(users)
+      .update(usersTable)
       .set({ points: db.raw('points + ?', [amount]) })
-      .where(eq(users.id, userId));
+      .where(eq(usersTable.id, userId));
 
     // Then create a points record
     const [point] = await db
