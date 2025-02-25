@@ -214,7 +214,6 @@ function BalanceForm() {
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     placeholder="0.00"
-                    defaultValue="0"
                     className="w-full px-3 py-2 border rounded-md"
                   />
                 </FormControl>
