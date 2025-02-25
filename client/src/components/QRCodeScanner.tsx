@@ -10,17 +10,19 @@ import { Loader2 } from 'lucide-react';
 
 interface QRData {
   userId: number;
-  amount: number;
-  timestamp: number;
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 export function QRCodeScanner() {
   const [scanning, setScanning] = useState(false);
+  const [amount, setAmount] = useState<string>('');
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const { toast } = useToast();
 
   const processMutation = useMutation({
-    mutationFn: async (data: QRData) => {
+    mutationFn: async (data: { userId: number; amount: number }) => {
       const res = await apiRequest('POST', '/api/balance', {
         userId: data.userId,
         amount: data.amount,
@@ -36,6 +38,7 @@ export function QRCodeScanner() {
         description: 'Guthaben wurde erfolgreich aufgeladen',
       });
       setScanning(false);
+      setAmount('');
     },
     onError: (error: Error) => {
       toast({
@@ -59,6 +62,15 @@ export function QRCodeScanner() {
   };
 
   const startScanner = async () => {
+    if (!amount) {
+      toast({
+        title: 'Fehler',
+        description: 'Bitte geben Sie zuerst einen Betrag ein',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!scannerRef.current) {
       const scanner = new Html5Qrcode('qr-reader');
       scannerRef.current = scanner;
@@ -74,12 +86,11 @@ export function QRCodeScanner() {
         async (decodedText) => {
           try {
             const data: QRData = JSON.parse(decodedText);
-            const isValid = Date.now() - data.timestamp < 5 * 60 * 1000;
-            if (!isValid) {
-              throw new Error('QR-Code ist abgelaufen');
-            }
             await stopScanner();
-            processMutation.mutate(data);
+            processMutation.mutate({
+              userId: data.userId,
+              amount: Math.round(parseFloat(amount) * 100), // Convert to cents
+            });
           } catch (err) {
             toast({
               title: 'Fehler',
@@ -116,6 +127,22 @@ export function QRCodeScanner() {
         <CardTitle>QR-Code Scanner</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="amount" className="text-sm font-medium">
+            Betrag (€)
+          </label>
+          <input
+            id="amount"
+            type="number"
+            step="0.01"
+            min="0"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Betrag eingeben"
+            className="w-full px-3 py-2 border rounded-md"
+          />
+        </div>
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -123,6 +150,7 @@ export function QRCodeScanner() {
           id="qr-reader"
           className="w-full max-w-sm mx-auto"
         />
+
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             className="w-full"
