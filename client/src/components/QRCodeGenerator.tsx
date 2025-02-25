@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { useAuth } from '@/hooks/use-auth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 
 export function QRCodeGenerator() {
@@ -33,23 +32,20 @@ export function QRCodeGenerator() {
   if (!qrUrl) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Ihr persönlicher QR-Code</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center gap-4">
-        <motion.img 
-          src={qrUrl} 
-          alt="QR Code" 
-          className="w-48 h-48"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 200 }}
-        />
-        <p className="text-sm text-muted-foreground text-center">
-          Zeigen Sie diesen Code vor, um Guthaben aufzuladen
-        </p>
-      </CardContent>
-    </Card>
+    <motion.div 
+      className="flex flex-col items-center"
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 200 }}
+    >
+      <img 
+        src={qrUrl} 
+        alt="QR Code" 
+        className="w-32 h-32 md:w-40 md:h-40"
+      />
+      <p className="text-sm text-muted-foreground text-center mt-2">
+        Ihr persönlicher QR-Code
+      </p>
+    </motion.div>
   );
 }

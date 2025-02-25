@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
-import { Transaction, Point, Achievement } from "@shared/schema";
+import { Transaction, Achievement } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, LogOut, Wallet, Award, Star } from "lucide-react";
@@ -72,38 +72,41 @@ export default function Dashboard() {
             <CardHeader>
               <CardTitle className="text-lg text-muted-foreground">Kontoübersicht</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Aktuelles Guthaben</p>
-                <motion.p 
-                  className="text-4xl font-bold text-primary"
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200 }}
-                >
-                  {(user.balance / 100).toFixed(2)}€
-                </motion.p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Gesammelte Punkte</p>
-                <div className="flex items-center gap-2">
-                  <motion.p 
-                    className="text-xl font-semibold"
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200 }}
-                  >
-                    {user.points}
-                  </motion.p>
-                  <Star className="h-5 w-5 text-yellow-500" />
+            <CardContent>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Aktuelles Guthaben</p>
+                    <motion.p 
+                      className="text-4xl font-bold text-primary"
+                      initial={{ scale: 0.8 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200 }}
+                    >
+                      {(user.balance / 100).toFixed(2)}€
+                    </motion.p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Gesammelte Punkte</p>
+                    <div className="flex items-center gap-2">
+                      <motion.p 
+                        className="text-xl font-semibold"
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 200 }}
+                      >
+                        {user.points}
+                      </motion.p>
+                      <Star className="h-5 w-5 text-yellow-500" />
+                    </div>
+                  </div>
+                </div>
+                <div className="md:col-span-1 lg:col-span-2 flex justify-center items-center">
+                  <QRCodeGenerator />
                 </div>
               </div>
             </CardContent>
           </Card>
-        </AnimatedContainer>
-
-        <AnimatedContainer>
-          <QRCodeGenerator />
         </AnimatedContainer>
 
         {achievements && achievements.length > 0 && (
