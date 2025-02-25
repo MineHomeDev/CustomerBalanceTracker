@@ -23,15 +23,13 @@ export default function TransactionsPage() {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 h-16 flex items-center">
           <h1 className="text-xl font-bold">Transaktionen</h1>
+          <Badge variant="outline" className="ml-2 font-normal">{transactions?.length || 0} Einträge</Badge>
         </div>
       </header>
 
       <main className="container mx-auto p-4 sm:p-6 md:p-8 space-y-6">
         <AnimatedContainer>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Transaktionen <Badge variant="outline" className="ml-2 font-normal">{transactions?.length || 0} Einträge</Badge></CardTitle>
-            </CardHeader>
             <CardContent>
               {transactionsLoading ? (
                 <div className="flex justify-center p-4">
