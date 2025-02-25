@@ -251,6 +251,7 @@ function BalanceForm() {
 export default function CashierPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const [showManualEdit, setShowManualEdit] = useState(false);
 
   if (!user?.isCashier) {
     return (
@@ -300,15 +301,27 @@ export default function CashierPage() {
           </AnimatedContainer>
 
           <AnimatedContainer>
-            <Card>
-              <CardHeader>
-                <CardTitle>Guthaben verwalten</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <BalanceForm />
-              </CardContent>
-            </Card>
+            <Button 
+              variant="destructive" 
+              className="w-full"
+              onClick={() => setShowManualEdit(!showManualEdit)}
+            >
+              {showManualEdit ? "Manuelle Bearbeitung ausblenden" : "Manuell Editieren"}
+            </Button>
           </AnimatedContainer>
+
+          {showManualEdit && (
+            <AnimatedContainer>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Guthaben verwalten</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <BalanceForm />
+                </CardContent>
+              </Card>
+            </AnimatedContainer>
+          )}
         </div>
       </main>
     </div>
