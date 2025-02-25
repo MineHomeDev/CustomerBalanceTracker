@@ -81,15 +81,23 @@ export default function Dashboard() {
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 200 }}
                 >
-                  €{(user.balance / 100).toFixed(2)}
+                  {(user.balance / 100).toFixed(2)}€
                 </motion.p>
               </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Gesammelte Punkte</p>
-                  <p className="text-xl font-semibold">{user.points} Punkte</p>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Gesammelte Punkte</p>
+                <div className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-500" />
+                  <motion.p 
+                    className="text-xl font-semibold"
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200 }}
+                  >
+                    {user.points} Punkte
+                  </motion.p>
                 </div>
+
               </div>
             </CardContent>
           </Card>
