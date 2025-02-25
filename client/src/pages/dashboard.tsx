@@ -10,16 +10,27 @@ import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 import { useLocation } from 'wouter';
 import { AnimatedContainer, AnimatedListItem } from "@/components/ui/animated-container";
 import { motion } from "framer-motion";
+import { getQueryFn } from "@/lib/queryClient"; // Fixed import path
 
 export default function Dashboard() {
-  const { user, logoutMutation } = useAuth();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
+
   const { data: transactions, isLoading: transactionsLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
+    refetchInterval: 5000, // Alle 5 Sekunden aktualisieren
   });
 
   const { data: achievements, isLoading: achievementsLoading } = useQuery<Achievement[]>({
     queryKey: ["/api/achievements"],
+    refetchInterval: 10000, // Achievements weniger häufig aktualisieren
+  });
+
+  // Benutzer-Daten automatisch aktualisieren
+  useQuery({
+    queryKey: ["/api/user"],
+    refetchInterval: 5000,
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
   if (!user) return null;
@@ -49,14 +60,14 @@ export default function Dashboard() {
                 onClick={() => setLocation("/cashier")}
                 className="hidden sm:flex"
               >
-                Cashier Dashboard
+                Zur Kasse
               </Button>
             )}
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={() => logoutMutation.mutate()}
+                onClick={() => useAuth().logoutMutation.mutate()}
                 className="text-muted-foreground hover:text-foreground"
               >
                 <LogOut className="h-5 w-5" />
@@ -191,23 +202,23 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </AnimatedContainer>
-      </main>
 
-      {user.isCashier && (
-        <motion.div 
-          className="fixed bottom-4 right-4 sm:hidden"
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          transition={{ type: "spring", stiffness: 200 }}
-        >
-          <Button 
-            className="shadow-lg"
-            onClick={() => setLocation("/cashier")}
+        {user.isCashier && (
+          <motion.div 
+            className="fixed bottom-4 right-4 sm:hidden"
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            transition={{ type: "spring", stiffness: 200 }}
           >
-            Zur Kasse
-          </Button>
-        </motion.div>
-      )}
+            <Button 
+              className="shadow-lg"
+              onClick={() => setLocation("/cashier")}
+            >
+              Zur Kasse
+            </Button>
+          </motion.div>
+        )}
+      </main>
     </div>
   );
 }
