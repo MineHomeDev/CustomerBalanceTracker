@@ -16,6 +16,8 @@ import { QRCodeScanner } from '@/components/QRCodeScanner';
 import { useState } from "react";
 import { useLocation } from 'wouter';
 import { motion } from 'framer-motion';
+import {QrCode} from 'lucide-react'; // Added import for QrCode
+
 
 const balanceSchema = z.object({
   userId: z.number(),
@@ -266,31 +268,13 @@ export default function CashierPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setLocation("/")}
-                className="lg:hidden"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </motion.div>
+        <div className="container mx-auto px-4 h-16 flex items-center">
+          <div className="flex items-center gap-4">
+            <QrCode className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-bold">Kassierer Dashboard</h1>
           </div>
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Button
-              variant="outline"
-              onClick={() => setLocation("/")}
-              className="hidden lg:flex"
-            >
-              Zum Guthaben
-            </Button>
-          </motion.div>
         </div>
       </header>
 

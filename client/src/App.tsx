@@ -8,6 +8,7 @@ import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/dashboard";
 import CashierPage from "@/pages/cashier";
 import { ProtectedRoute } from "./lib/protected-route";
+import { BottomNav } from "@/components/ui/bottom-nav";
 
 function Router() {
   return (
@@ -25,6 +26,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router />
+        <BottomNav />
         <Toaster />
       </AuthProvider>
     </QueryClientProvider>

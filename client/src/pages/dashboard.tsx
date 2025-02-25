@@ -36,9 +36,9 @@ export default function Dashboard() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-4 h-16 flex items-center">
           <div className="flex items-center gap-4">
             <motion.div
               whileHover={{ rotate: 360 }}
@@ -54,15 +54,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {user.isCashier && (
-              <Button 
-                variant="outline" 
-                onClick={() => setLocation("/cashier")}
-                className="hidden sm:flex"
-              >
-                Zur Kasse
-              </Button>
-            )}
+
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <Button 
                 variant="ghost" 
@@ -202,22 +194,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </AnimatedContainer>
-
-        {user.isCashier && (
-          <motion.div 
-            className="fixed bottom-4 right-4 sm:hidden"
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
-            transition={{ type: "spring", stiffness: 200 }}
-          >
-            <Button 
-              className="shadow-lg"
-              onClick={() => setLocation("/cashier")}
-            >
-              Zur Kasse
-            </Button>
-          </motion.div>
-        )}
       </main>
     </div>
   );
