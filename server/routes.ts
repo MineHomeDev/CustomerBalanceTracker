@@ -46,8 +46,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json([]);
     }
 
-    const foundUsers = await storage.searchUsers(search);
-    res.json(foundUsers);
+    try {
+      const foundUsers = await storage.searchUsers(search);
+      console.log('Found users:', foundUsers); // Debug log
+      res.json(foundUsers);
+    } catch (error) {
+      console.error('Error searching users:', error);
+      res.status(500).json({ error: 'Failed to search users' });
+    }
   });
 
   // Cashier routes for managing balances

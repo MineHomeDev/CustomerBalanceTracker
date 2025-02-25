@@ -77,8 +77,11 @@ function BalanceForm() {
     queryKey: ["/api/users/search", searchTerm],
     queryFn: async () => {
       if (!searchTerm || searchTerm.length < 2) return [];
+      console.log('Searching for:', searchTerm); // Debug log
       const res = await apiRequest("GET", `/api/users/search?search=${encodeURIComponent(searchTerm)}`);
-      return res.json();
+      const data = await res.json();
+      console.log('Search results:', data); // Debug log
+      return data;
     },
     enabled: searchTerm.length >= 2,
   });
