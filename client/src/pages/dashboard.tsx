@@ -1,9 +1,10 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Transaction, Achievement } from "@shared/schema";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Added CardHeader and CardTitle
 import { Badge } from "@/components/ui/badge";
-import { Home, Award, Search, MessageCircle } from "lucide-react";
+import { Loader2, Home, Wallet, Settings, User, Award, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 import { useLocation } from 'wouter';
@@ -21,7 +22,7 @@ export default function Dashboard() {
     refetchInterval: 5000,
   });
 
-  const { data: achievements } = useQuery<Achievement[]>({
+  const { data: achievements, isLoading: achievementsLoading } = useQuery<Achievement[]>({
     queryKey: ["/api/achievements"],
     refetchInterval: 10000,
   });
@@ -35,30 +36,25 @@ export default function Dashboard() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-16">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm z-10">
-        <div className="container px-4 h-14 flex items-center">
-          <div className="flex-1">
-            <h1 className="text-xl font-semibold">News</h1>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button className="p-2">
-              <MessageCircle className="h-5 w-5" />
-            </button>
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="container mx-auto px-4 h-16 flex items-center">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold">Balance System</h1>
           </div>
         </div>
       </header>
 
-      <Tabs defaultValue="recommended" className="min-h-screen">
-        {/* Main Content */}
-        <main className="container px-4 pt-20 pb-20">
-          <TabsContent value="recommended" className="space-y-4">
-            {/* Balance Card */}
+      {/* Main Content */}
+      <main className="container mx-auto p-4">
+        <Tabs defaultValue="home" className="space-y-4">
+          <TabsContent value="home" className="space-y-4">
+            {/* Kontoübersicht Card */}
             <AnimatedContainer>
-              <Card className="overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-center mb-6">
+              <Card className="bg-white">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Guthaben</p>
                       <motion.p 
@@ -70,125 +66,152 @@ export default function Dashboard() {
                         {(user.balance / 100).toFixed(2)}€
                       </motion.p>
                     </div>
-                    <div className="text-right">
+                    <div>
                       <p className="text-sm text-muted-foreground">Punkte</p>
-                      <div className="flex items-center justify-end space-x-1">
+                      <div className="flex items-center gap-1">
                         <motion.p 
-                          className="text-2xl font-bold"
+                          className="text-2xl font-semibold"
                           initial={{ scale: 0.8 }}
                           animate={{ scale: 1 }}
                           transition={{ type: "spring", stiffness: 200 }}
                         >
                           {user.points}
                         </motion.p>
+                        <Star className="h-5 w-5 text-yellow-500" />
                       </div>
                     </div>
-                  </div>
-                  <div className="flex justify-center">
-                    <QRCodeGenerator />
                   </div>
                 </CardContent>
               </Card>
             </AnimatedContainer>
 
-            {/* Transactions */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between px-1">
-                <h2 className="text-lg font-semibold">Recommended for you</h2>
-                <Badge variant="outline" className="font-normal">
-                  {transactions?.length || 0} Einträge
-                </Badge>
-              </div>
+            {/* QR Code */}
+            <AnimatedContainer>
+              <Card className="bg-white">
+                <CardContent className="pt-6">
+                  <QRCodeGenerator />
+                </CardContent>
+              </Card>
+            </AnimatedContainer>
 
-              <div className="space-y-3">
-                {transactionsLoading ? (
-                  <Card className="p-4 flex justify-center">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="text-primary"
-                    >
-                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"/>
-                    </motion.div>
-                  </Card>
-                ) : transactions?.slice(0, 5).map((transaction) => (
-                  <AnimatedListItem key={transaction.id}>
-                    <Card className="overflow-hidden">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-medium">{transaction.description}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {formatDistanceToNow(new Date(transaction.timestamp), { addSuffix: true })}
-                            </p>
+            {/* Transaktionen */}
+            <AnimatedContainer>
+              <Card className="bg-white">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold">Transaktionen</h2>
+                    <Badge variant="outline" className="font-normal">
+                      {transactions?.length || 0} Einträge
+                    </Badge>
+                  </div>
+                  {transactionsLoading ? (
+                    <div className="flex justify-center p-4">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }} //Re-added animation
+                      >
+                        <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                      </motion.div>
+                    </div>
+                  ) : transactions?.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-4">
+                      Noch keine Transaktionen
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {transactions?.slice(0, 5).map((transaction) => (
+                        <AnimatedListItem key={transaction.id}>
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-accent/10">
+                            <div>
+                              <p className="font-medium">{transaction.description}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {formatDistanceToNow(new Date(transaction.timestamp), { addSuffix: true })}
+                              </p>
+                            </div>
+                            <Badge variant={transaction.type === "deposit" ? "default" : "destructive"}>
+                              {transaction.type === "deposit" ? "+" : "-"}€{(transaction.amount / 100).toFixed(2)}
+                            </Badge>
                           </div>
-                          <Badge variant={transaction.type === "deposit" ? "default" : "destructive"}>
-                            {transaction.type === "deposit" ? "+" : "-"}€{(transaction.amount / 100).toFixed(2)}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </AnimatedListItem>
-                ))}
-              </div>
-            </div>
+                        </AnimatedListItem>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </AnimatedContainer>
           </TabsContent>
 
-          <TabsContent value="all">
-            <div className="text-center text-muted-foreground py-8">
-              Alle Transaktionen werden hier angezeigt
-            </div>
-          </TabsContent>
-
-          <TabsContent value="achievements">
-            {achievements && achievements.length > 0 ? (
-              <div className="grid gap-4">
-                {achievements.map((achievement) => (
-                  <AnimatedListItem key={achievement.id}>
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Award className="h-5 w-5" />
-                          <div>
-                            <p className="font-medium">{achievement.name}</p>
+          <TabsContent value="achievements" className="space-y-4">
+            {achievements && achievements.length > 0 && (
+              <AnimatedContainer>
+                <Card className="bg-white">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2"> {/* Added CardHeader and CardTitle */}
+                      <Award className="h-5 w-5" />
+                      Errungenschaften
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="grid gap-4">
+                      {achievements.map((achievement) => (
+                        <AnimatedListItem key={achievement.id}>
+                          <div className="p-4 rounded-lg bg-accent/10">
+                            <h3 className="font-semibold flex items-center gap-2">
+                              <Award className="h-5 w-5" />
+                              {achievement.name}
+                            </h3>
                             <p className="text-sm text-muted-foreground">{achievement.description}</p>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </AnimatedListItem>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground py-8">
-                Noch keine Errungenschaften
-              </div>
+                        </AnimatedListItem>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimatedContainer>
             )}
           </TabsContent>
-        </main>
 
-        {/* Bottom Navigation */}
-        <TabsList className="fixed bottom-0 left-0 right-0 border-t bg-white/80 backdrop-blur-sm pb-safe z-50 h-16">
-          <TabsTrigger value="recommended" className="flex-1 data-[state=active]:bg-transparent h-full">
-            <div className="flex flex-col items-center space-y-1">
-              <Home className="h-5 w-5" />
-              <span className="text-xs">Home</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger value="all" className="flex-1 data-[state=active]:bg-transparent h-full">
-            <div className="flex flex-col items-center space-y-1">
-              <Search className="h-5 w-5" />
-              <span className="text-xs">All</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger value="achievements" className="flex-1 data-[state=active]:bg-transparent h-full">
-            <div className="flex flex-col items-center space-y-1">
-              <Award className="h-5 w-5" />
-              <span className="text-xs">Awards</span>
-            </div>
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+          <TabsContent value="profile" className="space-y-4">
+            <AnimatedContainer>
+              <Card className="bg-white">
+                <CardContent className="pt-6">
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-semibold">{user.firstName} {user.lastName}</h2>
+                    <p className="text-muted-foreground">{user.email}</p>
+                    <Button 
+                      variant="outline" 
+                      className="w-full mt-4"
+                      onClick={() => useAuth().logoutMutation.mutate()}
+                    >
+                      Abmelden
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </AnimatedContainer>
+          </TabsContent>
+
+          {/* Bottom Navigation */}
+          <div className="fixed bottom-0 left-0 right-0 border-t bg-background z-50">
+            <TabsList className="w-full">
+              <TabsTrigger value="home" className="flex-1 py-3">
+                <Home className="h-5 w-5" />
+              </TabsTrigger>
+              {user.isCashier && (
+                <TabsTrigger value="cashier" className="flex-1 py-3" onClick={() => setLocation("/cashier")}>
+                  <Wallet className="h-5 w-5" />
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="achievements" className="flex-1 py-3">
+                <Award className="h-5 w-5" />
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="flex-1 py-3">
+                <User className="h-5 w-5" />
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        </Tabs>
+      </main>
     </div>
   );
 }
