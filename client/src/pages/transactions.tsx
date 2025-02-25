@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatedContainer, AnimatedListItem } from "@/components/ui/animated-container";
 import { motion } from "framer-motion";
+import { useEffect } from 'react';
 
 export default function TransactionsPage() {
   const { user } = useAuth();
@@ -14,6 +15,10 @@ export default function TransactionsPage() {
     queryKey: ["/api/transactions"],
     refetchInterval: 5000,
   });
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   if (!user) return null;
 
