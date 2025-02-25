@@ -127,8 +127,8 @@ function BalanceForm() {
                   <div className="relative">
                     <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                     <Input
-                      placeholder="Nach Benutzername suchen..."
-                      value={selectedUser ? selectedUser.username : searchTerm}
+                      placeholder="Nach E-Mail oder Namen suchen..."
+                      value={selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : searchTerm}
                       onChange={(e) => {
                         const value = e.target.value;
                         console.log('Sucheingabe geändert:', value);
@@ -158,7 +158,10 @@ function BalanceForm() {
                           setSearchTerm("");
                         }}
                       >
-                        <span className="font-medium">{user.username}</span>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{user.firstName} {user.lastName}</span>
+                          <span className="text-sm text-muted-foreground">{user.email}</span>
+                        </div>
                         <span className="text-muted-foreground">
                           €{(user.balance / 100).toFixed(2)}
                         </span>
