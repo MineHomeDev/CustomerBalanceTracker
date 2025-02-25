@@ -81,9 +81,10 @@ function BalanceForm() {
       if (!searchTerm || searchTerm.length < 2) return [];
 
       try {
+        console.log('Suche nach:', searchTerm);
         const res = await apiRequest("GET", `/api/users/search?search=${encodeURIComponent(searchTerm)}`);
         const data = await res.json();
-        console.log('Suchergebnisse:', data);
+        console.log('Gefundene Benutzer:', data);
         return data;
       } catch (error) {
         console.error('Fehler bei der Suche:', error);
@@ -116,7 +117,7 @@ function BalanceForm() {
                       value={selectedUser ? selectedUser.username : searchTerm}
                       onChange={(e) => {
                         const value = e.target.value;
-                        console.log('Search input changed:', value);
+                        console.log('Sucheingabe geändert:', value);
                         setSearchTerm(value);
                         setSelectedUser(null);
                         field.onChange(undefined);
@@ -137,7 +138,7 @@ function BalanceForm() {
                         key={user.id}
                         className="flex justify-between items-center p-3 hover:bg-accent cursor-pointer"
                         onClick={() => {
-                          console.log('Selected user:', user);
+                          console.log('Benutzer ausgewählt:', user);
                           field.onChange(user.id);
                           setSelectedUser(user);
                           setSearchTerm("");
@@ -218,7 +219,7 @@ function BalanceForm() {
         <Button
           type="submit"
           className="w-full"
-          disabled={balanceMutation.isPending || !selectedUser}
+          disabled={balanceMutation.isPending || !form.getValues().userId}
         >
           {balanceMutation.isPending ? "Verarbeite..." : "Guthaben aktualisieren"}
         </Button>
