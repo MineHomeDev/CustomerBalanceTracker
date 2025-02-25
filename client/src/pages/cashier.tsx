@@ -83,16 +83,30 @@ function BalanceForm() {
       try {
         console.log('Suche nach:', searchTerm);
         const res = await apiRequest("GET", `/api/users/search?search=${encodeURIComponent(searchTerm)}`);
+        if (!res.ok) {
+          if (res.status === 401) {
+            toast({
+              title: "Fehler",
+              description: "Bitte melden Sie sich erneut an",
+              variant: "destructive",
+            });
+            return [];
+          }
+          if (res.status === 403) {
+            toast({
+              title: "Fehler",
+              description: "Sie haben keine Berechtigung für diese Aktion",
+              variant: "destructive",
+            });
+            return [];
+          }
+          throw new Error("Fehler bei der Benutzersuche");
+        }
         const data = await res.json();
         console.log('Gefundene Benutzer:', data);
         return data;
       } catch (error) {
         console.error('Fehler bei der Suche:', error);
-        toast({
-          title: "Fehler",
-          description: "Benutzersuche fehlgeschlagen",
-          variant: "destructive",
-        });
         return [];
       }
     },
