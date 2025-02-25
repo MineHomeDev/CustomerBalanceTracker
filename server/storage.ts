@@ -1,7 +1,7 @@
 import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint, Achievement, InsertAchievement } from "@shared/schema";
 import { users as usersTable, transactions, points, achievements } from "@shared/schema";
 import { db } from "./db";
-import { eq, ilike, sql } from "drizzle-orm";
+import { eq, ilike, sql, desc } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -111,7 +111,7 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(transactions)
         .where(eq(transactions.userId, userId))
-        .orderBy(transactions.timestamp);
+        .orderBy(desc(transactions.timestamp));
     } catch (error) {
       console.error('Error getting transactions:', error);
       throw error;
@@ -214,7 +214,7 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-    async getUserByQRCodeId(qrCodeId: string): Promise<User | undefined> {
+  async getUserByQRCodeId(qrCodeId: string): Promise<User | undefined> {
     try {
       const [user] = await db.select().from(usersTable).where(eq(usersTable.qrCodeId, qrCodeId));
       return user;
