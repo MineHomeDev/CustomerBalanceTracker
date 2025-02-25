@@ -15,9 +15,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   const requireCashier = (req: any, res: any, next: any) => {
-    if (!req.isAuthenticated() || !req.user.isCashier) {
+    console.log('Checking cashier access:', {
+      isAuthenticated: req.isAuthenticated(),
+      user: req.user,
+      isCashier: req.user?.isCashier
+    });
+
+    if (!req.isAuthenticated()) {
+      console.log('User not authenticated');
+      return res.sendStatus(401);
+    }
+
+    if (!req.user.isCashier) {
+      console.log('User is not a cashier');
       return res.sendStatus(403);
     }
+
+    console.log('Cashier access granted');
     next();
   };
 
