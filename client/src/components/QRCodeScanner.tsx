@@ -7,6 +7,7 @@ import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface User {
   id: number;
@@ -20,6 +21,7 @@ interface QRData {
 export function QRCodeScanner() {
   const [scanning, setScanning] = useState(false);
   const [amount, setAmount] = useState<string>('');
+  const [transactionType, setTransactionType] = useState<'deposit' | 'withdrawal'>('deposit');
   const [scannedUser, setScannedUser] = useState<User | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const { toast } = useToast();
@@ -43,12 +45,12 @@ export function QRCodeScanner() {
   });
 
   const processMutation = useMutation({
-    mutationFn: async (data: { userId: number; amount: number }) => {
+    mutationFn: async (data: { userId: number; amount: number; type: 'deposit' | 'withdrawal' }) => {
       const res = await apiRequest('POST', '/api/balance', {
         userId: data.userId,
         amount: data.amount,
-        type: 'deposit',
-        description: 'QR-Code Einzahlung'
+        type: data.type,
+        description: data.type === 'deposit' ? 'QR-Code Einzahlung' : 'QR-Code Abbuchung'
       });
       return res.json();
     },
@@ -56,7 +58,7 @@ export function QRCodeScanner() {
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
       toast({
         title: 'Erfolg',
-        description: 'Guthaben wurde erfolgreich aufgeladen',
+        description: `Transaktion wurde erfolgreich ${transactionType === 'deposit' ? 'eingezahlt' : 'abgebucht'}`,
       });
       setScanning(false);
       setAmount('');
@@ -113,6 +115,7 @@ export function QRCodeScanner() {
             processMutation.mutate({
               userId: user.id,
               amount: Math.round(parseFloat(amount) * 100),
+              type: transactionType
             });
           } catch (err) {
             toast({
@@ -150,6 +153,22 @@ export function QRCodeScanner() {
         <CardTitle>QR-Code Scanner</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Transaktionstyp</label>
+          <Select
+            value={transactionType}
+            onValueChange={(value: 'deposit' | 'withdrawal') => setTransactionType(value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Typ auswählen" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="deposit">Einzahlung</SelectItem>
+              <SelectItem value="withdrawal">Abbuchung</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="space-y-2">
           <label htmlFor="amount" className="text-sm font-medium">
             Betrag (€)
