@@ -42,7 +42,6 @@ function BalanceForm() {
   const form = useForm<z.infer<typeof balanceSchema>>({
     resolver: zodResolver(balanceSchema),
     defaultValues: {
-      amount: 0,
       type: "deposit" as const,
       description: "",
     },

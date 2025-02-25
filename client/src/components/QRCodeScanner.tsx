@@ -183,7 +183,6 @@ export function QRCodeScanner() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            defaultValue="0"
             className="w-full px-3 py-2 border rounded-md"
           />
         </div>
