@@ -87,17 +87,16 @@ export default function Dashboard() {
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Gesammelte Punkte</p>
                 <div className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-500" />
                   <motion.p 
                     className="text-xl font-semibold"
                     initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 200 }}
                   >
-                    {user.points} Punkte
+                    {user.points}
                   </motion.p>
+                  <Star className="h-5 w-5 text-yellow-500" />
                 </div>
-
               </div>
             </CardContent>
           </Card>
