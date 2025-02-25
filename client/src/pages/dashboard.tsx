@@ -1,16 +1,17 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Transaction, Achievement } from "@shared/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Added CardHeader and CardTitle
 import { Badge } from "@/components/ui/badge";
-import { Loader2, LogOut, Wallet, Award, Star } from "lucide-react";
+import { Loader2, Home, Wallet, Settings, User, Award, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { QRCodeGenerator } from '@/components/QRCodeGenerator';
 import { useLocation } from 'wouter';
 import { AnimatedContainer, AnimatedListItem } from "@/components/ui/animated-container";
 import { motion } from "framer-motion";
-import { getQueryFn } from "@/lib/queryClient"; // Fixed import path
+import { getQueryFn } from "@/lib/queryClient";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -18,15 +19,14 @@ export default function Dashboard() {
 
   const { data: transactions, isLoading: transactionsLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
-    refetchInterval: 5000, // Alle 5 Sekunden aktualisieren
+    refetchInterval: 5000,
   });
 
   const { data: achievements, isLoading: achievementsLoading } = useQuery<Achievement[]>({
     queryKey: ["/api/achievements"],
-    refetchInterval: 10000, // Achievements weniger häufig aktualisieren
+    refetchInterval: 10000,
   });
 
-  // Benutzer-Daten automatisch aktualisieren
   useQuery({
     queryKey: ["/api/user"],
     refetchInterval: 5000,
@@ -36,61 +36,29 @@ export default function Dashboard() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-16">
+      {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <motion.div
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Wallet className="h-6 w-6 text-primary" />
-            </motion.div>
-            <div>
-              <h1 className="text-xl font-bold">Balance System</h1>
-              <p className="text-sm text-muted-foreground">
-                {user.firstName} {user.lastName}
-              </p>
-            </div>
-          </div>
+        <div className="container mx-auto px-4 h-16 flex items-center">
           <div className="flex items-center gap-2">
-            {user.isCashier && (
-              <Button 
-                variant="outline" 
-                onClick={() => setLocation("/cashier")}
-                className="hidden sm:flex"
-              >
-                Zur Kasse
-              </Button>
-            )}
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => useAuth().logoutMutation.mutate()}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </motion.div>
+            <h1 className="text-xl font-semibold">Balance System</h1>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto p-4 sm:p-6 md:p-8 space-y-6">
-        <AnimatedContainer>
-          <Card className="border-2">
-            <CardHeader>
-              <CardTitle className="text-lg text-muted-foreground">Kontoübersicht</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row md:items-center gap-6">
-                <div className="space-y-4 md:flex-1">
+      {/* Main Content */}
+      <main className="container mx-auto p-4">
+        <Tabs defaultValue="home" className="space-y-4">
+          <TabsContent value="home" className="space-y-4">
+            {/* Kontoübersicht Card */}
+            <AnimatedContainer>
+              <Card className="bg-white">
+                <CardContent className="pt-6">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Aktuelles Guthaben</p>
+                      <p className="text-sm text-muted-foreground">Guthaben</p>
                       <motion.p 
-                        className="text-4xl font-bold text-primary"
+                        className="text-2xl font-bold"
                         initial={{ scale: 0.8 }}
                         animate={{ scale: 1 }}
                         transition={{ type: "spring", stiffness: 200 }}
@@ -99,8 +67,8 @@ export default function Dashboard() {
                       </motion.p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Punkte</p>
-                      <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground">Punkte</p>
+                      <div className="flex items-center gap-1">
                         <motion.p 
                           className="text-2xl font-semibold"
                           initial={{ scale: 0.8 }}
@@ -113,111 +81,136 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex justify-center md:flex-1">
+                </CardContent>
+              </Card>
+            </AnimatedContainer>
+
+            {/* QR Code */}
+            <AnimatedContainer>
+              <Card className="bg-white">
+                <CardContent className="pt-6">
                   <QRCodeGenerator />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimatedContainer>
+                </CardContent>
+              </Card>
+            </AnimatedContainer>
 
-        {achievements && achievements.length > 0 && (
-          <AnimatedContainer>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="h-5 w-5" />
-                  Errungenschaften
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {achievements.map((achievement) => (
-                    <AnimatedListItem key={achievement.id}>
-                      <motion.div 
-                        className="p-4 border rounded-lg bg-accent/10"
-                        whileHover={{ scale: 1.02 }}
+            {/* Transaktionen */}
+            <AnimatedContainer>
+              <Card className="bg-white">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold">Transaktionen</h2>
+                    <Badge variant="outline" className="font-normal">
+                      {transactions?.length || 0} Einträge
+                    </Badge>
+                  </div>
+                  {transactionsLoading ? (
+                    <div className="flex justify-center p-4">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }} //Re-added animation
                       >
-                        <h3 className="font-semibold">{achievement.name}</h3>
-                        <p className="text-sm text-muted-foreground">{achievement.description}</p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Freigeschaltet {formatDistanceToNow(new Date(achievement.unlockedAt), { addSuffix: true })}
-                        </p>
+                        <Loader2 className="h-6 w-6 text-primary animate-spin" />
                       </motion.div>
-                    </AnimatedListItem>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </AnimatedContainer>
-        )}
+                    </div>
+                  ) : transactions?.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-4">
+                      Noch keine Transaktionen
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {transactions?.slice(0, 5).map((transaction) => (
+                        <AnimatedListItem key={transaction.id}>
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-accent/10">
+                            <div>
+                              <p className="font-medium">{transaction.description}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {formatDistanceToNow(new Date(transaction.timestamp), { addSuffix: true })}
+                              </p>
+                            </div>
+                            <Badge variant={transaction.type === "deposit" ? "default" : "destructive"}>
+                              {transaction.type === "deposit" ? "+" : "-"}€{(transaction.amount / 100).toFixed(2)}
+                            </Badge>
+                          </div>
+                        </AnimatedListItem>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </AnimatedContainer>
+          </TabsContent>
 
-        <AnimatedContainer>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Transaktionen</CardTitle>
-              <Badge variant="outline" className="font-normal">
-                {transactions?.length || 0} Einträge
-              </Badge>
-            </CardHeader>
-            <CardContent>
-              {transactionsLoading ? (
-                <div className="flex justify-center p-4">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  >
-                    <Loader2 className="h-6 w-6 text-primary" />
-                  </motion.div>
-                </div>
-              ) : transactions?.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Noch keine Transaktionen vorhanden
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {transactions?.map((transaction) => (
-                    <AnimatedListItem key={transaction.id}>
-                      <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                        <div>
-                          <p className="font-medium">{transaction.description}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {formatDistanceToNow(new Date(transaction.timestamp), { addSuffix: true })}
-                          </p>
-                        </div>
-                        <motion.div 
-                          whileHover={{ scale: 1.05 }}
-                          className="flex items-center gap-2"
-                        >
-                          <Badge variant={transaction.type === "deposit" ? "default" : "destructive"}>
-                            {transaction.type === "deposit" ? "+" : "-"}€{(transaction.amount / 100).toFixed(2)}
-                          </Badge>
-                        </motion.div>
-                      </div>
-                    </AnimatedListItem>
-                  ))}
-                </div>
+          <TabsContent value="achievements" className="space-y-4">
+            {achievements && achievements.length > 0 && (
+              <AnimatedContainer>
+                <Card className="bg-white">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2"> {/* Added CardHeader and CardTitle */}
+                      <Award className="h-5 w-5" />
+                      Errungenschaften
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="grid gap-4">
+                      {achievements.map((achievement) => (
+                        <AnimatedListItem key={achievement.id}>
+                          <div className="p-4 rounded-lg bg-accent/10">
+                            <h3 className="font-semibold flex items-center gap-2">
+                              <Award className="h-5 w-5" />
+                              {achievement.name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                          </div>
+                        </AnimatedListItem>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimatedContainer>
+            )}
+          </TabsContent>
+
+          <TabsContent value="profile" className="space-y-4">
+            <AnimatedContainer>
+              <Card className="bg-white">
+                <CardContent className="pt-6">
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-semibold">{user.firstName} {user.lastName}</h2>
+                    <p className="text-muted-foreground">{user.email}</p>
+                    <Button 
+                      variant="outline" 
+                      className="w-full mt-4"
+                      onClick={() => useAuth().logoutMutation.mutate()}
+                    >
+                      Abmelden
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </AnimatedContainer>
+          </TabsContent>
+
+          {/* Bottom Navigation */}
+          <div className="fixed bottom-0 left-0 right-0 border-t bg-background z-50">
+            <TabsList className="w-full">
+              <TabsTrigger value="home" className="flex-1 py-3">
+                <Home className="h-5 w-5" />
+              </TabsTrigger>
+              {user.isCashier && (
+                <TabsTrigger value="cashier" className="flex-1 py-3" onClick={() => setLocation("/cashier")}>
+                  <Wallet className="h-5 w-5" />
+                </TabsTrigger>
               )}
-            </CardContent>
-          </Card>
-        </AnimatedContainer>
-
-        {user.isCashier && (
-          <motion.div 
-            className="fixed bottom-4 right-4 sm:hidden"
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
-            transition={{ type: "spring", stiffness: 200 }}
-          >
-            <Button 
-              className="shadow-lg"
-              onClick={() => setLocation("/cashier")}
-            >
-              Zur Kasse
-            </Button>
-          </motion.div>
-        )}
+              <TabsTrigger value="achievements" className="flex-1 py-3">
+                <Award className="h-5 w-5" />
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="flex-1 py-3">
+                <User className="h-5 w-5" />
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        </Tabs>
       </main>
     </div>
   );
