@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Transaction } from "@shared/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -21,9 +21,11 @@ export default function TransactionsPage() {
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 h-16 flex items-center">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <h1 className="text-xl font-bold">Transaktionen</h1>
-          <Badge variant="outline" className="ml-2 font-normal">{transactions?.length || 0} Einträge</Badge>
+          <div>
+            <Badge variant="outline" className="font-normal">{transactions?.length || 0} Einträge</Badge>
+          </div>
         </div>
       </header>
 
