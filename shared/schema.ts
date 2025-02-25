@@ -1,10 +1,14 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull().unique(),
+  dateOfBirth: date("date_of_birth").notNull(),
   password: text("password").notNull(),
   balance: integer("balance").notNull().default(0),
   isCashier: boolean("is_cashier").notNull().default(false),
@@ -15,7 +19,7 @@ export const transactions = pgTable("transactions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   amount: integer("amount").notNull(),
-  type: text("type").notNull(), // "deposit" or "withdrawal"
+  type: text("type").notNull(),
   description: text("description").notNull(),
   timestamp: timestamp("timestamp").notNull().defaultNow()
 });
@@ -37,11 +41,24 @@ export const achievements = pgTable("achievements", {
   unlockedAt: timestamp("unlocked_at").notNull().defaultNow()
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  isCashier: true
-});
+export const insertUserSchema = createInsertSchema(users)
+  .pick({
+    username: true,
+    firstName: true,
+    lastName: true,
+    email: true,
+    dateOfBirth: true,
+    password: true,
+    isCashier: true
+  })
+  .extend({
+    passwordConfirm: z.string(),
+    dateOfBirth: z.string().transform((str) => new Date(str))
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: "Passwörter stimmen nicht überein",
+    path: ["passwordConfirm"],
+  });
 
 export const transactionSchema = createInsertSchema(transactions).pick({
   userId: true,
