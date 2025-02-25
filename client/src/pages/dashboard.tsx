@@ -50,9 +50,9 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container px-4 pt-20 pb-20">
-        <Tabs defaultValue="recommended" className="space-y-4">
+      <Tabs defaultValue="recommended" className="min-h-screen">
+        {/* Main Content */}
+        <main className="container px-4 pt-20 pb-20">
           <TabsContent value="recommended" className="space-y-4">
             {/* Balance Card */}
             <AnimatedContainer>
@@ -165,32 +165,30 @@ export default function Dashboard() {
               </div>
             )}
           </TabsContent>
-        </Tabs>
+        </main>
 
         {/* Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 border-t bg-white/80 backdrop-blur-sm pb-safe z-50">
-          <TabsList className="w-full h-16 bg-transparent border-none">
-            <TabsTrigger value="recommended" className="flex-1 data-[state=active]:bg-transparent">
-              <div className="flex flex-col items-center space-y-1">
-                <Home className="h-5 w-5" />
-                <span className="text-xs">Home</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger value="all" className="flex-1 data-[state=active]:bg-transparent">
-              <div className="flex flex-col items-center space-y-1">
-                <Search className="h-5 w-5" />
-                <span className="text-xs">All</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger value="achievements" className="flex-1 data-[state=active]:bg-transparent">
-              <div className="flex flex-col items-center space-y-1">
-                <Award className="h-5 w-5" />
-                <span className="text-xs">Awards</span>
-              </div>
-            </TabsTrigger>
-          </TabsList>
-        </nav>
-      </main>
+        <TabsList className="fixed bottom-0 left-0 right-0 border-t bg-white/80 backdrop-blur-sm pb-safe z-50 h-16">
+          <TabsTrigger value="recommended" className="flex-1 data-[state=active]:bg-transparent h-full">
+            <div className="flex flex-col items-center space-y-1">
+              <Home className="h-5 w-5" />
+              <span className="text-xs">Home</span>
+            </div>
+          </TabsTrigger>
+          <TabsTrigger value="all" className="flex-1 data-[state=active]:bg-transparent h-full">
+            <div className="flex flex-col items-center space-y-1">
+              <Search className="h-5 w-5" />
+              <span className="text-xs">All</span>
+            </div>
+          </TabsTrigger>
+          <TabsTrigger value="achievements" className="flex-1 data-[state=active]:bg-transparent h-full">
+            <div className="flex flex-col items-center space-y-1">
+              <Award className="h-5 w-5" />
+              <span className="text-xs">Awards</span>
+            </div>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
     </div>
   );
 }
