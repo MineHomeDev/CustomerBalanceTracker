@@ -73,35 +73,37 @@ export default function Dashboard() {
               <CardTitle className="text-lg text-muted-foreground">Kontoübersicht</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Aktuelles Guthaben</p>
-                    <motion.p 
-                      className="text-4xl font-bold text-primary"
-                      initial={{ scale: 0.8 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 200 }}
-                    >
-                      {(user.balance / 100).toFixed(2)}€
-                    </motion.p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Gesammelte Punkte</p>
-                    <div className="flex items-center gap-2">
+              <div className="flex flex-col md:flex-row md:items-center gap-6">
+                <div className="space-y-4 md:flex-1">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Aktuelles Guthaben</p>
                       <motion.p 
-                        className="text-xl font-semibold"
+                        className="text-4xl font-bold text-primary"
                         initial={{ scale: 0.8 }}
                         animate={{ scale: 1 }}
                         transition={{ type: "spring", stiffness: 200 }}
                       >
-                        {user.points}
+                        {(user.balance / 100).toFixed(2)}€
                       </motion.p>
-                      <Star className="h-5 w-5 text-yellow-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Punkte</p>
+                      <div className="flex items-center gap-2">
+                        <motion.p 
+                          className="text-2xl font-semibold"
+                          initial={{ scale: 0.8 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 200 }}
+                        >
+                          {user.points}
+                        </motion.p>
+                        <Star className="h-5 w-5 text-yellow-500" />
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="md:col-span-1 lg:col-span-2 flex justify-center items-center">
+                <div className="flex justify-center md:flex-1">
                   <QRCodeGenerator />
                 </div>
               </div>
