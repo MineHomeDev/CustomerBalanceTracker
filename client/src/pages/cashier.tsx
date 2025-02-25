@@ -79,11 +79,21 @@ function BalanceForm() {
     queryKey: ["/api/users/search", searchTerm],
     queryFn: async () => {
       if (!searchTerm || searchTerm.length < 2) return [];
-      console.log('Frontend: Searching for:', searchTerm);
-      const res = await apiRequest("GET", `/api/users/search?search=${encodeURIComponent(searchTerm)}`);
-      const data = await res.json();
-      console.log('Frontend: Search results:', data);
-      return data;
+
+      try {
+        const res = await apiRequest("GET", `/api/users/search?search=${encodeURIComponent(searchTerm)}`);
+        const data = await res.json();
+        console.log('Suchergebnisse:', data);
+        return data;
+      } catch (error) {
+        console.error('Fehler bei der Suche:', error);
+        toast({
+          title: "Fehler",
+          description: "Benutzersuche fehlgeschlagen",
+          variant: "destructive",
+        });
+        return [];
+      }
     },
     enabled: searchTerm.length >= 2,
   });

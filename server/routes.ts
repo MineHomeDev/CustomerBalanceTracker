@@ -15,23 +15,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   const requireCashier = (req: any, res: any, next: any) => {
-    console.log('Checking cashier access:', {
-      isAuthenticated: req.isAuthenticated(),
-      user: req.user,
-      isCashier: req.user?.isCashier
-    });
-
     if (!req.isAuthenticated()) {
-      console.log('User not authenticated');
+      console.log('Fehler: Benutzer nicht authentifiziert');
       return res.sendStatus(401);
     }
 
-    if (!req.user.isCashier) {
-      console.log('User is not a cashier');
+    if (!req.user || !req.user.isCashier) {
+      console.log('Fehler: Benutzer ist kein Kassierer', req.user);
       return res.sendStatus(403);
     }
 
-    console.log('Cashier access granted');
+    console.log('Kassierer-Zugriff gewährt für:', req.user.username);
     next();
   };
 
@@ -55,20 +49,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Search users (for cashiers only)
   app.get("/api/users/search", requireCashier, async (req, res) => {
-    const search = req.query.search as string;
-    if (!search || search.length < 2) {
-      console.log('Search query too short:', search);
-      return res.json([]);
-    }
-
     try {
-      console.log('Starting user search with query:', search);
-      const foundUsers = await storage.searchUsers(search);
-      console.log('Search results:', foundUsers);
-      res.json(foundUsers);
+      const search = req.query.search as string;
+      console.log('Benutzersuche gestartet:', search);
+
+      if (!search || search.length < 2) {
+        console.log('Suchbegriff zu kurz');
+        return res.json([]);
+      }
+
+      const users = await storage.searchUsers(search);
+      console.log('Gefundene Benutzer:', users);
+      res.json(users);
     } catch (error) {
-      console.error('Error searching users:', error);
-      res.status(500).json({ error: 'Failed to search users' });
+      console.error('Fehler bei der Benutzersuche:', error);
+      res.status(500).json({ error: 'Fehler bei der Benutzersuche' });
     }
   });
 
@@ -78,7 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const user = await storage.getUser(userId);
 
     if (!user) {
-      return res.status(404).send("User not found");
+      return res.status(404).send("Benutzer nicht gefunden");
     }
 
     const newBalance = type === "deposit"
@@ -86,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       : user.balance - amount;
 
     if (newBalance < 0) {
-      return res.status(400).send("Insufficient balance");
+      return res.status(400).send("Nicht genügend Guthaben");
     }
 
     await storage.createTransaction({
@@ -96,9 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       description
     });
 
-    // Award points for transactions
     if (type === "deposit") {
-      // Award 1 point for every 2 EUR deposited
       const pointsToAward = Math.floor(amount / 200);
       if (pointsToAward > 0) {
         await storage.addPoints(
@@ -108,7 +101,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
 
-      // Check for achievements
       const totalPoints = user.points + pointsToAward;
       if (totalPoints >= 100 && !(await hasAchievement(userId, "points_100"))) {
         await storage.unlockAchievement(
