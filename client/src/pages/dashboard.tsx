@@ -1,29 +1,20 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
-import { Transaction, Achievement } from "@shared/schema";
+import { Achievement } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, LogOut, Wallet, Award, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Award, Star, Wallet } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { QRCodeGenerator } from '@/components/QRCodeGenerator';
-import { useLocation } from 'wouter';
 import { AnimatedContainer, AnimatedListItem } from "@/components/ui/animated-container";
 import { motion } from "framer-motion";
-import { getQueryFn } from "@/lib/queryClient"; // Fixed import path
+import { getQueryFn } from "@/lib/queryClient";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [, setLocation] = useLocation();
-
-  const { data: transactions, isLoading: transactionsLoading } = useQuery<Transaction[]>({
-    queryKey: ["/api/transactions"],
-    refetchInterval: 5000, // Alle 5 Sekunden aktualisieren
-  });
 
   const { data: achievements, isLoading: achievementsLoading } = useQuery<Achievement[]>({
     queryKey: ["/api/achievements"],
-    refetchInterval: 10000, // Achievements weniger häufig aktualisieren
+    refetchInterval: 10000,
   });
 
   // Benutzer-Daten automatisch aktualisieren
@@ -144,56 +135,6 @@ export default function Dashboard() {
             </Card>
           </AnimatedContainer>
         )}
-
-        <AnimatedContainer>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Transaktionen</CardTitle>
-              <Badge variant="outline" className="font-normal">
-                {transactions?.length || 0} Einträge
-              </Badge>
-            </CardHeader>
-            <CardContent>
-              {transactionsLoading ? (
-                <div className="flex justify-center p-4">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  >
-                    <Loader2 className="h-6 w-6 text-primary" />
-                  </motion.div>
-                </div>
-              ) : transactions?.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Noch keine Transaktionen vorhanden
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {transactions?.map((transaction) => (
-                    <AnimatedListItem key={transaction.id}>
-                      <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                        <div>
-                          <p className="font-medium">{transaction.description}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {formatDistanceToNow(new Date(transaction.timestamp), { addSuffix: true })}
-                          </p>
-                        </div>
-                        <motion.div 
-                          whileHover={{ scale: 1.05 }}
-                          className="flex items-center gap-2"
-                        >
-                          <Badge variant={transaction.type === "deposit" ? "default" : "destructive"}>
-                            {transaction.type === "deposit" ? "+" : "-"}€{(transaction.amount / 100).toFixed(2)}
-                          </Badge>
-                        </motion.div>
-                      </div>
-                    </AnimatedListItem>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </AnimatedContainer>
       </main>
     </div>
   );

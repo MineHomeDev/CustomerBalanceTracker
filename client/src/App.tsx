@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/dashboard";
 import CashierPage from "@/pages/cashier";
+import TransactionsPage from "@/pages/transactions";
 import { ProtectedRoute } from "./lib/protected-route";
 import { BottomNav } from "@/components/ui/bottom-nav";
 
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/cashier" component={CashierPage} />
+      <ProtectedRoute path="/transactions" component={TransactionsPage} />
       <Route component={NotFound} />
     </Switch>
   );
