@@ -11,7 +11,8 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   balance: integer("balance").notNull().default(0),
   isCashier: boolean("is_cashier").notNull().default(false),
-  points: integer("points").notNull().default(0)
+  points: integer("points").notNull().default(0),
+  qrCodeId: text("qr_code_id").notNull().unique()
 });
 
 export const transactions = pgTable("transactions", {

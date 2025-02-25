@@ -108,6 +108,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Neue Route für QR-Code-ID Lookup hinzufügen
+  app.get("/api/users/qr/:qrCodeId", requireCashier, async (req, res) => {
+    try {
+      const user = await storage.getUserByQRCodeId(req.params.qrCodeId);
+      if (!user) {
+        return res.status(404).json({ error: "Benutzer nicht gefunden" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error('QR code lookup error:', error);
+      res.status(500).json({ error: 'Fehler bei der Benutzersuche' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

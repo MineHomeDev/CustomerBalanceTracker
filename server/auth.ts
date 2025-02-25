@@ -2,7 +2,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { scrypt, randomBytes, timingSafeEqual, randomInt } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
@@ -28,6 +28,16 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+async function generateUniqueQRCodeId(): Promise<string> {
+  while (true) {
+    const id = String(randomInt(10000000, 99999999));
+    const existingUser = await storage.getUserByQRCodeId(id);
+    if (!existingUser) {
+      return id;
+    }
+  }
+}
+
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'dev_secret',
@@ -35,9 +45,9 @@ export function setupAuth(app: Express) {
     saveUninitialized: true,
     store: storage.sessionStore,
     cookie: {
-      secure: false, // Development setting
+      secure: false, 
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 24 * 60 * 60 * 1000 
     }
   };
 
@@ -91,9 +101,11 @@ export function setupAuth(app: Express) {
         return res.status(400).send("E-Mail-Adresse wird bereits verwendet");
       }
 
+      const qrCodeId = await generateUniqueQRCodeId();
       const user = await storage.createUser({
         ...req.body,
         password: await hashPassword(req.body.password),
+        qrCodeId
       });
 
       req.login(user, (err) => {

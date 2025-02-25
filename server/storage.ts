@@ -11,6 +11,7 @@ const PostgresSessionStore = connectPg(session);
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByQRCodeId(qrCodeId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateBalance(userId: number, newBalance: number): Promise<User>;
   getTransactions(userId: number): Promise<Transaction[]>;
@@ -210,6 +211,15 @@ export class DatabaseStorage implements IStorage {
         .orderBy(achievements.unlockedAt);
     } catch (error) {
       console.error('Error getting achievements:', error);
+      throw error;
+    }
+  }
+    async getUserByQRCodeId(qrCodeId: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.qrCodeId, qrCodeId));
+      return user;
+    } catch (error) {
+      console.error('Error getting user by QR code ID:', error);
       throw error;
     }
   }

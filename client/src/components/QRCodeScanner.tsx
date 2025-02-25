@@ -8,18 +8,39 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 
+interface User {
+  id: number;
+  // ... other user properties
+}
+
 interface QRData {
-  userId: number;
-  firstName: string;
-  lastName: string;
-  email: string;
+  qrCodeId: string;
 }
 
 export function QRCodeScanner() {
   const [scanning, setScanning] = useState(false);
   const [amount, setAmount] = useState<string>('');
+  const [scannedUser, setScannedUser] = useState<User | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const { toast } = useToast();
+
+  const findUserMutation = useMutation({
+    mutationFn: async (qrCodeId: string) => {
+      const res = await apiRequest("GET", `/api/users/qr/${qrCodeId}`);
+      if (!res.ok) throw new Error("Benutzer nicht gefunden");
+      return res.json();
+    },
+    onSuccess: (user: User) => {
+      setScannedUser(user);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Fehler",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const processMutation = useMutation({
     mutationFn: async (data: { userId: number; amount: number }) => {
@@ -39,6 +60,7 @@ export function QRCodeScanner() {
       });
       setScanning(false);
       setAmount('');
+      setScannedUser(null);
     },
     onError: (error: Error) => {
       toast({
@@ -87,9 +109,10 @@ export function QRCodeScanner() {
           try {
             const data: QRData = JSON.parse(decodedText);
             await stopScanner();
+            const user = await findUserMutation.mutateAsync(data.qrCodeId);
             processMutation.mutate({
-              userId: data.userId,
-              amount: Math.round(parseFloat(amount) * 100), // Convert to cents
+              userId: user.id,
+              amount: Math.round(parseFloat(amount) * 100),
             });
           } catch (err) {
             toast({
@@ -155,9 +178,9 @@ export function QRCodeScanner() {
           <Button
             className="w-full"
             onClick={scanning ? stopScanner : startScanner}
-            disabled={processMutation.isPending}
+            disabled={processMutation.isPending || findUserMutation.isPending}
           >
-            {processMutation.isPending ? (
+            {processMutation.isPending || findUserMutation.isPending ? (
               <>
                 <motion.div
                   animate={{ rotate: 360 }}

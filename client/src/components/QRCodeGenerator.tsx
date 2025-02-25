@@ -12,10 +12,7 @@ export function QRCodeGenerator() {
       if (!user) return;
 
       const data = {
-        userId: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email
+        qrCodeId: user.qrCodeId
       };
 
       try {
