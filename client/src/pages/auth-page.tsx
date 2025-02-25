@@ -13,7 +13,7 @@ import * as z from 'zod';
 
 // Separates Login-Schema
 const loginSchema = z.object({
-  username: z.string().min(1, "Benutzername ist erforderlich"),
+  email: z.string().email("Bitte geben Sie eine gültige E-Mail-Adresse ein"),
   password: z.string().min(1, "Passwort ist erforderlich"),
 });
 
@@ -73,7 +73,7 @@ function LoginForm() {
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -83,12 +83,12 @@ function LoginForm() {
       <form onSubmit={form.handleSubmit((data) => loginMutation.mutate(data))} className="space-y-4">
         <FormField
           control={form.control}
-          name="username"
+          name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Benutzername</FormLabel>
+              <FormLabel>E-Mail</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input type="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -120,7 +120,6 @@ function RegisterForm() {
   const form = useForm<z.infer<typeof insertUserSchema>>({
     resolver: zodResolver(insertUserSchema),
     defaultValues: {
-      username: "",
       firstName: "",
       lastName: "",
       email: "",
@@ -163,20 +162,6 @@ function RegisterForm() {
             )}
           />
         </div>
-
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Benutzername</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <FormField
           control={form.control}

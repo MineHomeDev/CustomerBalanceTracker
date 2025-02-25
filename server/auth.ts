@@ -46,19 +46,22 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false);
+    new LocalStrategy(
+      { usernameField: 'email' },
+      async (email, password, done) => {
+        try {
+          const user = await storage.getUserByEmail(email);
+          if (!user || !(await comparePasswords(password, user.password))) {
+            return done(null, false);
+          }
+          console.log('User authenticated:', user.email);
+          return done(null, user);
+        } catch (error) {
+          console.error('Authentication error:', error);
+          return done(error);
         }
-        console.log('User authenticated:', user.username);
-        return done(null, user);
-      } catch (error) {
-        console.error('Authentication error:', error);
-        return done(error);
       }
-    }),
+    )
   );
 
   passport.serializeUser((user, done) => {
@@ -83,9 +86,9 @@ export function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res, next) => {
     try {
-      const existingUser = await storage.getUserByUsername(req.body.username);
+      const existingUser = await storage.getUserByEmail(req.body.email);
       if (existingUser) {
-        return res.status(400).send("Username already exists");
+        return res.status(400).send("E-Mail-Adresse wird bereits verwendet");
       }
 
       const user = await storage.createUser({
@@ -108,7 +111,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
-    console.log('Logging out user:', req.user?.username);
+    console.log('Logging out user:', req.user?.email);
     req.logout((err) => {
       if (err) return next(err);
       res.sendStatus(200);
@@ -118,7 +121,7 @@ export function setupAuth(app: Express) {
   app.get("/api/user", (req, res) => {
     console.log('Checking authentication:', {
       isAuthenticated: req.isAuthenticated(),
-      user: req.user?.username
+      user: req.user?.email
     });
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);

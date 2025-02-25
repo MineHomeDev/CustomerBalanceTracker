@@ -10,7 +10,7 @@ const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateBalance(userId: number, newBalance: number): Promise<User>;
   getTransactions(userId: number): Promise<Transaction[]>;
@@ -44,12 +44,12 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
+  async getUserByEmail(email: string): Promise<User | undefined> {
     try {
-      const [user] = await db.select().from(usersTable).where(eq(usersTable.username, username));
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
       return user;
     } catch (error) {
-      console.error('Error getting user by username:', error);
+      console.error('Error getting user by email:', error);
       throw error;
     }
   }
@@ -60,7 +60,7 @@ export class DatabaseStorage implements IStorage {
       const results = await db
         .select()
         .from(usersTable)
-        .where(ilike(usersTable.username, `%${query}%`))
+        .where(ilike(usersTable.email, `%${query}%`))
         .limit(10);
       console.log('Search results:', results);
       return results;
@@ -132,7 +132,6 @@ export class DatabaseStorage implements IStorage {
 
   async addPoints(userId: number, amount: number, reason: string): Promise<Point> {
     try {
-      // Update user's total points
       await db
         .update(usersTable)
         .set({ 
@@ -140,7 +139,6 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(usersTable.id, userId));
 
-      // Create points record
       const [point] = await db
         .insert(points)
         .values({
