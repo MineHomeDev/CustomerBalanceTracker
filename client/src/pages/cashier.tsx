@@ -15,7 +15,7 @@ import { Loader2, ArrowLeft, Search } from "lucide-react";
 import { QRCodeScanner } from '@/components/QRCodeScanner';
 import { useState } from "react";
 import { useLocation } from 'wouter';
-import { motion } from 'framer-motion'; // Import framer-motion
+import { motion } from 'framer-motion';
 
 const balanceSchema = z.object({
   userId: z.number(),
@@ -33,74 +33,6 @@ const AnimatedContainer = ({ children }: { children: React.ReactNode }) => (
     {children}
   </motion.div>
 );
-
-
-export default function CashierPage() {
-  const { user } = useAuth();
-  const [, setLocation] = useLocation();
-
-  if (!user?.isCashier) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="flex items-center justify-center min-h-screen"
-      >
-        <p className="text-destructive">Zugriff verweigert. Nur für Kassierer.</p>
-      </motion.div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setLocation("/")}
-                className="lg:hidden"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </motion.div>
-            <h1 className="text-xl font-bold">Kassierer Dashboard</h1>
-          </div>
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Button
-              variant="outline"
-              onClick={() => setLocation("/")}
-              className="hidden lg:flex"
-            >
-              Zum Guthaben
-            </Button>
-          </motion.div>
-        </div>
-      </header>
-
-      <main className="container mx-auto p-4 sm:p-6 md:p-8">
-        <div className="grid gap-6 max-w-2xl mx-auto">
-          <AnimatedContainer>
-            <QRCodeScanner />
-          </AnimatedContainer>
-
-          <AnimatedContainer>
-            <Card>
-              <CardHeader>
-                <CardTitle>Guthaben verwalten</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <BalanceForm />
-              </CardContent>
-            </Card>
-          </AnimatedContainer>
-        </div>
-      </main>
-    </div>
-  );
-}
 
 function BalanceForm() {
   const { toast } = useToast();
@@ -141,14 +73,14 @@ function BalanceForm() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  const { data: users, isLoading } = useQuery<User[]>({
+  const { data: users, isLoading } = useQuery({
     queryKey: ["/api/users", searchTerm],
     queryFn: async () => {
-      if (!searchTerm) return [];
+      if (!searchTerm || searchTerm.length < 2) return [];
       const res = await apiRequest("GET", `/api/users?search=${encodeURIComponent(searchTerm)}`);
       return res.json();
     },
-    enabled: Boolean(searchTerm),
+    enabled: searchTerm.length >= 2,
   });
 
   return (
@@ -267,11 +199,78 @@ function BalanceForm() {
         <Button
           type="submit"
           className="w-full"
-          disabled={balanceMutation.isPending}
+          disabled={balanceMutation.isPending || !selectedUser}
         >
           {balanceMutation.isPending ? "Verarbeite..." : "Guthaben aktualisieren"}
         </Button>
       </form>
     </Form>
+  );
+}
+
+export default function CashierPage() {
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  if (!user?.isCashier) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex items-center justify-center min-h-screen"
+      >
+        <p className="text-destructive">Zugriff verweigert. Nur für Kassierer.</p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation("/")}
+                className="lg:hidden"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </motion.div>
+            <h1 className="text-xl font-bold">Kassierer Dashboard</h1>
+          </div>
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/")}
+              className="hidden lg:flex"
+            >
+              Zum Guthaben
+            </Button>
+          </motion.div>
+        </div>
+      </header>
+
+      <main className="container mx-auto p-4 sm:p-6 md:p-8">
+        <div className="grid gap-6 max-w-2xl mx-auto">
+          <AnimatedContainer>
+            <QRCodeScanner />
+          </AnimatedContainer>
+
+          <AnimatedContainer>
+            <Card>
+              <CardHeader>
+                <CardTitle>Guthaben verwalten</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BalanceForm />
+              </CardContent>
+            </Card>
+          </AnimatedContainer>
+        </div>
+      </main>
+    </div>
   );
 }
