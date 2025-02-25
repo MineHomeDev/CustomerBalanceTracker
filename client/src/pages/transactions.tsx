@@ -30,10 +30,7 @@ export default function TransactionsPage() {
         <AnimatedContainer>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Transaktionshistorie</CardTitle>
-              <Badge variant="outline" className="font-normal">
-                {transactions?.length || 0} Einträge
-              </Badge>
+              <CardTitle>Transaktionen <Badge variant="outline" className="ml-2 font-normal">{transactions?.length || 0} Einträge</Badge></CardTitle>
             </CardHeader>
             <CardContent>
               {transactionsLoading ? (
