@@ -61,6 +61,7 @@ export function BottomNav() {
           </button>
         </div>
       </nav>
+      <div className="fixed bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent pointer-events-none" />
     </motion.div>
   );
 }
