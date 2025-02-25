@@ -73,11 +73,11 @@ function BalanceForm() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  const { data: users, isLoading } = useQuery({
-    queryKey: ["/api/users", searchTerm],
+  const { data: users, isLoading } = useQuery<User[]>({
+    queryKey: ["/api/users/search", searchTerm],
     queryFn: async () => {
       if (!searchTerm || searchTerm.length < 2) return [];
-      const res = await apiRequest("GET", `/api/users?search=${encodeURIComponent(searchTerm)}`);
+      const res = await apiRequest("GET", `/api/users/search?search=${encodeURIComponent(searchTerm)}`);
       return res.json();
     },
     enabled: searchTerm.length >= 2,

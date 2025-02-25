@@ -40,9 +40,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Search users (for cashiers only)
-  app.get("/api/users", requireCashier, async (req, res) => {
+  app.get("/api/users/search", requireCashier, async (req, res) => {
     const search = req.query.search as string;
-    if (!search) {
+    if (!search || search.length < 2) {
       return res.json([]);
     }
 
