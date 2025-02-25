@@ -179,10 +179,11 @@ export function QRCodeScanner() {
             inputMode="decimal"
             pattern="[0-9]*[.,]?[0-9]*"
             step="0.01"
-            min="0"
+            min="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="Betrag eingeben"
+            placeholder="0.00"
+            defaultValue="0"
             className="w-full px-3 py-2 border rounded-md"
           />
         </div>
