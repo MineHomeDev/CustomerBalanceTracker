@@ -18,10 +18,6 @@ export default function Dashboard() {
     queryKey: ["/api/transactions"],
   });
 
-  const { data: points, isLoading: pointsLoading } = useQuery<Point[]>({
-    queryKey: ["/api/points"],
-  });
-
   const { data: achievements, isLoading: achievementsLoading } = useQuery<Achievement[]>({
     queryKey: ["/api/achievements"],
   });
@@ -32,14 +28,19 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <motion.div
               whileHover={{ rotate: 360 }}
               transition={{ duration: 0.5 }}
             >
               <Wallet className="h-6 w-6 text-primary" />
             </motion.div>
-            <h1 className="text-xl font-bold">Balance System</h1>
+            <div>
+              <h1 className="text-xl font-bold">Balance System</h1>
+              <p className="text-sm text-muted-foreground">
+                {user.firstName} {user.lastName}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {user.isCashier && (
@@ -66,13 +67,14 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto p-4 sm:p-6 md:p-8 space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          <AnimatedContainer>
-            <Card className="border-2">
-              <CardHeader>
-                <CardTitle className="text-lg text-muted-foreground">Aktuelles Guthaben</CardTitle>
-              </CardHeader>
-              <CardContent>
+        <AnimatedContainer>
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle className="text-lg text-muted-foreground">Kontoübersicht</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Aktuelles Guthaben</p>
                 <motion.p 
                   className="text-4xl font-bold text-primary"
                   initial={{ scale: 0.8 }}
@@ -81,31 +83,17 @@ export default function Dashboard() {
                 >
                   €{(user.balance / 100).toFixed(2)}
                 </motion.p>
-              </CardContent>
-            </Card>
-          </AnimatedContainer>
-
-          <AnimatedContainer>
-            <Card className="border-2">
-              <CardHeader>
-                <CardTitle className="text-lg text-muted-foreground flex items-center gap-2">
-                  <Star className="h-5 w-5" />
-                  Punktestand
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <motion.p 
-                  className="text-4xl font-bold text-primary"
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200 }}
-                >
-                  {user.points} Punkte
-                </motion.p>
-              </CardContent>
-            </Card>
-          </AnimatedContainer>
-        </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-yellow-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Gesammelte Punkte</p>
+                  <p className="text-xl font-semibold">{user.points} Punkte</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </AnimatedContainer>
 
         <AnimatedContainer>
           <QRCodeGenerator />
