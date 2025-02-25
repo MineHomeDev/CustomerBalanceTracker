@@ -205,7 +205,7 @@ function BalanceForm() {
               <FormItem>
                 <FormLabel>Betrag (€)</FormLabel>
                 <FormControl>
-                  <Input
+                  <input
                     type="number"
                     inputMode="decimal"
                     pattern="[0-9]*[.,]?[0-9]*"
@@ -213,6 +213,8 @@ function BalanceForm() {
                     min="0"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    placeholder="Betrag eingeben"
+                    className="w-full px-3 py-2 border rounded-md"
                   />
                 </FormControl>
                 <FormMessage />
