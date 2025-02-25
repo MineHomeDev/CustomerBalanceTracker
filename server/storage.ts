@@ -1,7 +1,7 @@
 import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint, Achievement, InsertAchievement } from "@shared/schema";
 import { users as usersTable, transactions, points, achievements } from "@shared/schema";
 import { db } from "./db";
-import { eq, ilike } from "drizzle-orm";
+import { eq, ilike, sql } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -19,6 +19,7 @@ export interface IStorage {
   getPoints(userId: number): Promise<Point[]>;
   unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement>;
   getAchievements(userId: number): Promise<Achievement[]>;
+  hasAchievement(userId: number, type: string): Promise<boolean>;
   searchUsers(query: string): Promise<User[]>;
   sessionStore: session.Store;
 }
@@ -34,119 +35,185 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
-    return user;
+    try {
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
+      return user;
+    } catch (error) {
+      console.error('Error getting user:', error);
+      throw error;
+    }
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.username, username));
-    return user;
+    try {
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.username, username));
+      return user;
+    } catch (error) {
+      console.error('Error getting user by username:', error);
+      throw error;
+    }
   }
 
   async searchUsers(query: string): Promise<User[]> {
-    console.log('Datenbanksuche gestartet mit:', query);
     try {
-      const searchResults = await db
+      console.log('Executing user search:', query);
+      const results = await db
         .select()
         .from(usersTable)
         .where(ilike(usersTable.username, `%${query}%`))
         .limit(10);
-
-      console.log('Datenbanksuche erfolgreich:', searchResults);
-      return searchResults;
+      console.log('Search results:', results);
+      return results;
     } catch (error) {
-      console.error('Datenbankfehler bei der Suche:', error);
+      console.error('Search error:', error);
       throw error;
     }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(usersTable)
-      .values({
-        ...insertUser,
-        balance: 0,
-        isCashier: insertUser.isCashier || false
-      })
-      .returning();
-    return user;
+    try {
+      const [user] = await db
+        .insert(usersTable)
+        .values({
+          ...insertUser,
+          balance: 0,
+          isCashier: insertUser.isCashier || false,
+          points: 0
+        })
+        .returning();
+      return user;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
   }
 
   async updateBalance(userId: number, newBalance: number): Promise<User> {
-    const [user] = await db
-      .update(usersTable)
-      .set({ balance: newBalance })
-      .where(eq(usersTable.id, userId))
-      .returning();
+    try {
+      const [user] = await db
+        .update(usersTable)
+        .set({ balance: newBalance })
+        .where(eq(usersTable.id, userId))
+        .returning();
 
-    if (!user) throw new Error("User not found");
-    return user;
+      if (!user) throw new Error("User not found");
+      return user;
+    } catch (error) {
+      console.error('Error updating balance:', error);
+      throw error;
+    }
   }
 
   async getTransactions(userId: number): Promise<Transaction[]> {
-    return await db
-      .select()
-      .from(transactions)
-      .where(eq(transactions.userId, userId))
-      .orderBy(transactions.timestamp);
+    try {
+      return await db
+        .select()
+        .from(transactions)
+        .where(eq(transactions.userId, userId))
+        .orderBy(transactions.timestamp);
+    } catch (error) {
+      console.error('Error getting transactions:', error);
+      throw error;
+    }
   }
 
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
-    const [transaction] = await db
-      .insert(transactions)
-      .values(insertTransaction)
-      .returning();
-    return transaction;
+    try {
+      const [transaction] = await db
+        .insert(transactions)
+        .values(insertTransaction)
+        .returning();
+      return transaction;
+    } catch (error) {
+      console.error('Error creating transaction:', error);
+      throw error;
+    }
   }
 
   async addPoints(userId: number, amount: number, reason: string): Promise<Point> {
-    // First update the user's total points
-    await db
-      .update(usersTable)
-      .set({ points: db.raw('points + ?', [amount]) })
-      .where(eq(usersTable.id, userId));
+    try {
+      // Update user's total points
+      await db
+        .update(usersTable)
+        .set({ 
+          points: sql`${usersTable.points} + ${amount}` 
+        })
+        .where(eq(usersTable.id, userId));
 
-    // Then create a points record
-    const [point] = await db
-      .insert(points)
-      .values({
-        userId,
-        amount,
-        reason,
-      })
-      .returning();
+      // Create points record
+      const [point] = await db
+        .insert(points)
+        .values({
+          userId,
+          amount,
+          reason,
+        })
+        .returning();
 
-    return point;
+      return point;
+    } catch (error) {
+      console.error('Error adding points:', error);
+      throw error;
+    }
   }
 
   async getPoints(userId: number): Promise<Point[]> {
-    return await db
-      .select()
-      .from(points)
-      .where(eq(points.userId, userId))
-      .orderBy(points.timestamp);
+    try {
+      return await db
+        .select()
+        .from(points)
+        .where(eq(points.userId, userId))
+        .orderBy(points.timestamp);
+    } catch (error) {
+      console.error('Error getting points:', error);
+      throw error;
+    }
+  }
+
+  async hasAchievement(userId: number, type: string): Promise<boolean> {
+    try {
+      const [achievement] = await db
+        .select()
+        .from(achievements)
+        .where(eq(achievements.userId, userId))
+        .where(eq(achievements.type, type));
+      return !!achievement;
+    } catch (error) {
+      console.error('Error checking achievement:', error);
+      throw error;
+    }
   }
 
   async unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement> {
-    const [achievement] = await db
-      .insert(achievements)
-      .values({
-        userId,
-        type,
-        name,
-        description,
-      })
-      .returning();
+    try {
+      const [achievement] = await db
+        .insert(achievements)
+        .values({
+          userId,
+          type,
+          name,
+          description,
+        })
+        .returning();
 
-    return achievement;
+      return achievement;
+    } catch (error) {
+      console.error('Error unlocking achievement:', error);
+      throw error;
+    }
   }
 
   async getAchievements(userId: number): Promise<Achievement[]> {
-    return await db
-      .select()
-      .from(achievements)
-      .where(eq(achievements.userId, userId))
-      .orderBy(achievements.unlockedAt);
+    try {
+      return await db
+        .select()
+        .from(achievements)
+        .where(eq(achievements.userId, userId))
+        .orderBy(achievements.unlockedAt);
+    } catch (error) {
+      console.error('Error getting achievements:', error);
+      throw error;
+    }
   }
 }
 

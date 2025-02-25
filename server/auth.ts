@@ -31,17 +31,16 @@ async function comparePasswords(supplied: string, stored: string) {
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'dev_secret',
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     store: storage.sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Development setting
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
   };
 
-  app.set("trust proxy", 1);
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
@@ -53,8 +52,10 @@ export function setupAuth(app: Express) {
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false);
         }
+        console.log('User authenticated:', user.username);
         return done(null, user);
       } catch (error) {
+        console.error('Authentication error:', error);
         return done(error);
       }
     }),
@@ -70,10 +71,12 @@ export function setupAuth(app: Express) {
       console.log('Deserializing user:', id);
       const user = await storage.getUser(id);
       if (!user) {
-        return done(new Error('User not found'));
+        console.error('User not found during deserialization:', id);
+        return done(null, false);
       }
       done(null, user);
     } catch (error) {
+      console.error('Deserialization error:', error);
       done(error);
     }
   });
@@ -105,6 +108,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
+    console.log('Logging out user:', req.user?.username);
     req.logout((err) => {
       if (err) return next(err);
       res.sendStatus(200);
@@ -114,7 +118,7 @@ export function setupAuth(app: Express) {
   app.get("/api/user", (req, res) => {
     console.log('Checking authentication:', {
       isAuthenticated: req.isAuthenticated(),
-      user: req.user
+      user: req.user?.username
     });
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
