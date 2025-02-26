@@ -102,7 +102,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Big spender achievement (10€ or more)
-        if (amount >= 10 && !(await storage.hasAchievement(userId, ACHIEVEMENTS.BIG_SPENDER.type))) {
+        if (amount >= 1000 && !(await storage.hasAchievement(userId, ACHIEVEMENTS.BIG_SPENDER.type))) {
+          console.log("Checking big_spender achievement", { amount, userId });
           console.log("Unlocking big_spender achievement for amount:", amount);
           await storage.unlockAchievement(
             userId,
