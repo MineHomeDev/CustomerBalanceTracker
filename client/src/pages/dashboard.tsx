@@ -40,9 +40,6 @@ export default function Dashboard() {
             </motion.div>
             <div>
               <h1 className="text-xl font-bold">Balance System</h1>
-              <p className="text-sm text-muted-foreground">
-                {user.firstName} {user.lastName}
-              </p>
             </div>
           </div>
         </div>
@@ -84,6 +81,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
+                  <p className="text-sm text-muted-foreground">Angemeldet als: {user.firstName} {user.lastName}</p>
                 </div>
                 <div className="flex justify-center md:flex-1">
                   <QRCodeGenerator />
