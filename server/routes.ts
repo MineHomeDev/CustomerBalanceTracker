@@ -86,11 +86,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Nicht genügend Guthaben" });
       }
 
+      const updatedUser = await storage.updateBalance(userId, newBalance);
       await storage.createTransaction({ userId, amount, type, description });
 
       if (type === "deposit") {
         // First deposit achievement
-        if (!(await storage.hasAchievement(userId, "first_deposit"))) {
+        if (!(await storage.hasAchievement(userId, ACHIEVEMENTS.FIRST_DEPOSIT.type))) {
           await storage.unlockAchievement(
             userId, 
             ACHIEVEMENTS.FIRST_DEPOSIT.type,
