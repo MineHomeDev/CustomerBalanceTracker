@@ -97,6 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ACHIEVEMENTS.FIRST_DEPOSIT.name,
             ACHIEVEMENTS.FIRST_DEPOSIT.description
           );
+          await storage.addPoints(userId, 5, "Erfolg freigeschaltet: Erster Einzahler");
         }
 
         // Big spender achievement (10€ or more)
@@ -107,6 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ACHIEVEMENTS.BIG_SPENDER.name,
             ACHIEVEMENTS.BIG_SPENDER.description
           );
+          await storage.addPoints(userId, 5, "Erfolg freigeschaltet: Großzahler");
         }
 
         const pointsToAward = Math.floor(amount / 200);
@@ -115,7 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const totalPoints = user.points + pointsToAward;
-        
+
         // Points achievements
         if (totalPoints >= 100 && !(await storage.hasAchievement(userId, "points_100"))) {
           await storage.unlockAchievement(
@@ -124,8 +126,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ACHIEVEMENTS.POINTS_100.name,
             ACHIEVEMENTS.POINTS_100.description
           );
+          await storage.addPoints(userId, 5, "Erfolg freigeschaltet: 100 Punkte erreicht");
         }
-        
+
         if (totalPoints >= 500 && !(await storage.hasAchievement(userId, "points_500"))) {
           await storage.unlockAchievement(
             userId,
@@ -133,6 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ACHIEVEMENTS.POINTS_500.name,
             ACHIEVEMENTS.POINTS_500.description
           );
+          await storage.addPoints(userId, 5, "Erfolg freigeschaltet: 500 Punkte erreicht");
         }
       }
 
