@@ -49,8 +49,7 @@ export default function Dashboard() {
         <AnimatedContainer>
           <Card className="border-2">
             <CardHeader>
-              <CardTitle className="text-lg text-muted-foreground">Kontoübersicht</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">Angemeldet als: {user.firstName} {user.lastName}</p>
+              <CardTitle className="text-lg text-muted-foreground">{user.firstName} {user.lastName}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col md:flex-row md:items-center gap-6">
