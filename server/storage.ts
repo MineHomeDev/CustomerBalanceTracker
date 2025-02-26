@@ -176,6 +176,7 @@ export class DatabaseStorage implements IStorage {
         .from(achievements)
         .where(eq(achievements.userId, userId))
         .where(eq(achievements.type, type));
+      console.log("Checking achievement:", { userId, type, hasAchievement: !!achievement });
       return !!achievement;
     } catch (error) {
       console.error('Error checking achievement:', error);
