@@ -1,24 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import cors from "cors";
-import morgan from "morgan";
-import compression from "compression";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
-
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors());
-app.use(morgan('dev'));
-app.use(compression());
 
-// API Request Logging
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -37,43 +24,46 @@ app.use((req, res, next) => {
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-      console.log(logLine);
+
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "…";
+      }
+
+      log(logLine);
     }
   });
 
   next();
 });
 
-// Register API routes
-const setup = async () => {
+(async () => {
   const server = await registerRoutes(app);
 
-  // Error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-    console.error(err);
+
     res.status(status).json({ message });
+    throw err;
   });
 
-  // Serve static files from the dist directory
-  app.use(express.static(join(__dirname, '../dist')));
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
 
-  // Handle client-side routing by serving index.html for all non-API routes
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(join(__dirname, '../dist/index.html'));
-    }
-  });
-
-  // Start server
-  const port = process.env.PORT || 5000;
+  // ALWAYS serve the app on port 5000
+  // this serves both the API and the client
+  const port = 5000;
   server.listen({
     port,
     host: "0.0.0.0",
+    reusePort: true,
   }, () => {
-    console.log(`Server running on port ${port}`);
+    log(`serving on port ${port}`);
   });
-};
-
-setup().catch(console.error);
+})();

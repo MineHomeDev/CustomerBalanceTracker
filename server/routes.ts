@@ -62,12 +62,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(points);
   });
 
+  // Get user achievements
+  app.get("/api/achievements", requireAuth, async (req, res) => {
+    const achievements = await storage.getAchievements(req.user!.id);
+    res.json(achievements);
+  });
+
   // Balance management route
   app.post("/api/balance", requireCashier, async (req, res) => {
-    const { id, amount, type, description } = req.body;
+    const { userId, amount, type, description } = req.body;
 
     try {
-      const user = await storage.getUser(id);
+      const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ error: "Benutzer nicht gefunden" });
       }
@@ -80,17 +86,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Nicht genügend Guthaben" });
       }
 
-      const updatedUser = await storage.updateBalance(id, newBalance);
-      await storage.createTransaction({ userId: id, amount, type, description });
+      await storage.createTransaction({ userId, amount, type, description });
 
       if (type === "deposit") {
-        // Punkte für Einzahlung
         const pointsToAward = Math.floor(amount / 200);
         if (pointsToAward > 0) {
-          await storage.addPoints(id, pointsToAward, `Punkte für ${amount / 100}€ Einzahlung`);
+          await storage.addPoints(userId, pointsToAward, `Punkte für ${amount / 100}€ Einzahlung`);
+        }
+
+        const totalPoints = user.points + pointsToAward;
+        if (totalPoints >= 100 && !(await storage.hasAchievement(userId, "points_100"))) {
+          await storage.unlockAchievement(userId, "points_100", "Punktesammler", "Sammle 100 Punkte");
         }
       }
 
+      const updatedUser = await storage.updateBalance(userId, newBalance);
       res.json(updatedUser);
     } catch (error) {
       console.error('Balance update error:', error);

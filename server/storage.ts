@@ -1,5 +1,5 @@
-import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint } from "@shared/schema";
-import { users as usersTable, transactions, points } from "@shared/schema";
+import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint, Achievement, InsertAchievement } from "@shared/schema";
+import { users as usersTable, transactions, points, achievements } from "@shared/schema";
 import { db } from "./db";
 import { eq, ilike, sql, desc } from "drizzle-orm";
 import session from "express-session";
@@ -13,11 +13,14 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByQRCodeId(qrCodeId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateBalance(id: number, newBalance: number): Promise<User>;
-  getTransactions(id: number): Promise<Transaction[]>;
+  updateBalance(userId: number, newBalance: number): Promise<User>;
+  getTransactions(userId: number): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
-  addPoints(id: number, amount: number, reason: string): Promise<Point>;
-  getPoints(id: number): Promise<Point[]>;
+  addPoints(userId: number, amount: number, reason: string): Promise<Point>;
+  getPoints(userId: number): Promise<Point[]>;
+  unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement>;
+  getAchievements(userId: number): Promise<Achievement[]>;
+  hasAchievement(userId: number, type: string): Promise<boolean>;
   searchUsers(query: string): Promise<User[]>;
   sessionStore: session.Store;
 }
@@ -52,23 +55,15 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getUserByQRCodeId(qrCodeId: string): Promise<User | undefined> {
-    try {
-      const [user] = await db.select().from(usersTable).where(eq(usersTable.qrCodeId, qrCodeId));
-      return user;
-    } catch (error) {
-      console.error('Error getting user by QR code ID:', error);
-      throw error;
-    }
-  }
-
   async searchUsers(query: string): Promise<User[]> {
     try {
+      console.log('Executing user search:', query);
       const results = await db
         .select()
         .from(usersTable)
         .where(ilike(usersTable.email, `%${query}%`))
         .limit(10);
+      console.log('Search results:', results);
       return results;
     } catch (error) {
       console.error('Search error:', error);
@@ -94,12 +89,12 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateBalance(id: number, newBalance: number): Promise<User> {
+  async updateBalance(userId: number, newBalance: number): Promise<User> {
     try {
       const [user] = await db
         .update(usersTable)
         .set({ balance: newBalance })
-        .where(eq(usersTable.id, id))
+        .where(eq(usersTable.id, userId))
         .returning();
 
       if (!user) throw new Error("User not found");
@@ -110,12 +105,12 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getTransactions(id: number): Promise<Transaction[]> {
+  async getTransactions(userId: number): Promise<Transaction[]> {
     try {
       return await db
         .select()
         .from(transactions)
-        .where(eq(transactions.userId, id))
+        .where(eq(transactions.userId, userId))
         .orderBy(desc(transactions.timestamp));
     } catch (error) {
       console.error('Error getting transactions:', error);
@@ -136,19 +131,19 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async addPoints(id: number, amount: number, reason: string): Promise<Point> {
+  async addPoints(userId: number, amount: number, reason: string): Promise<Point> {
     try {
       await db
         .update(usersTable)
         .set({ 
           points: sql`${usersTable.points} + ${amount}` 
         })
-        .where(eq(usersTable.id, id));
+        .where(eq(usersTable.id, userId));
 
       const [point] = await db
         .insert(points)
         .values({
-          userId: id,
+          userId,
           amount,
           reason,
         })
@@ -161,15 +156,70 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getPoints(id: number): Promise<Point[]> {
+  async getPoints(userId: number): Promise<Point[]> {
     try {
       return await db
         .select()
         .from(points)
-        .where(eq(points.userId, id))
+        .where(eq(points.userId, userId))
         .orderBy(points.timestamp);
     } catch (error) {
       console.error('Error getting points:', error);
+      throw error;
+    }
+  }
+
+  async hasAchievement(userId: number, type: string): Promise<boolean> {
+    try {
+      const [achievement] = await db
+        .select()
+        .from(achievements)
+        .where(eq(achievements.userId, userId))
+        .where(eq(achievements.type, type));
+      return !!achievement;
+    } catch (error) {
+      console.error('Error checking achievement:', error);
+      throw error;
+    }
+  }
+
+  async unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement> {
+    try {
+      const [achievement] = await db
+        .insert(achievements)
+        .values({
+          userId,
+          type,
+          name,
+          description,
+        })
+        .returning();
+
+      return achievement;
+    } catch (error) {
+      console.error('Error unlocking achievement:', error);
+      throw error;
+    }
+  }
+
+  async getAchievements(userId: number): Promise<Achievement[]> {
+    try {
+      return await db
+        .select()
+        .from(achievements)
+        .where(eq(achievements.userId, userId))
+        .orderBy(achievements.unlockedAt);
+    } catch (error) {
+      console.error('Error getting achievements:', error);
+      throw error;
+    }
+  }
+  async getUserByQRCodeId(qrCodeId: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.qrCodeId, qrCodeId));
+      return user;
+    } catch (error) {
+      console.error('Error getting user by QR code ID:', error);
       throw error;
     }
   }

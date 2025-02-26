@@ -40,7 +40,23 @@ export default function Dashboard() {
             </motion.div>
             <div>
               <h1 className="text-xl font-bold">Balance System</h1>
+              <p className="text-sm text-muted-foreground">
+                {user.firstName} {user.lastName}
+              </p>
             </div>
+          </div>
+          <div className="flex items-center gap-2">
+
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => useAuth().logoutMutation.mutate()}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </motion.div>
           </div>
         </div>
       </header>
@@ -49,7 +65,7 @@ export default function Dashboard() {
         <AnimatedContainer>
           <Card className="border-2">
             <CardHeader>
-              <CardTitle className="text-lg text-muted-foreground">{user.firstName} {user.lastName}</CardTitle>
+              <CardTitle className="text-lg text-muted-foreground">Kontoübersicht</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col md:flex-row md:items-center gap-6">
