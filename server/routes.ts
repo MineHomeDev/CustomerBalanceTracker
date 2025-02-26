@@ -99,8 +99,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
         }
 
-        // Big spender achievement (50€ or more)
-        if (amount >= 5000 && !(await storage.hasAchievement(userId, "big_spender"))) {
+        // Big spender achievement (10€ or more)
+        if (amount >= 1000 && !(await storage.hasAchievement(userId, "big_spender"))) {
           await storage.unlockAchievement(
             userId,
             ACHIEVEMENTS.BIG_SPENDER.type,

@@ -203,7 +203,7 @@ const ACHIEVEMENTS = {
   BIG_SPENDER: {
     type: "big_spender",
     name: "Großer Spender",
-    description: "Tätige eine Einzahlung von mindestens 50€"
+    description: "Tätige eine Einzahlung von mindestens 10€"
   },
   REGULAR_USER: {
     type: "regular_user",

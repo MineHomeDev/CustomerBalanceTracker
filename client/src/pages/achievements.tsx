@@ -18,7 +18,7 @@ const AVAILABLE_ACHIEVEMENTS = [
   {
     type: "big_spender",
     name: "Großer Spender",
-    description: "Tätige eine Einzahlung von mindestens 50€"
+    description: "Tätige eine Einzahlung von mindestens 10€"
   },
   {
     type: "points_100",
