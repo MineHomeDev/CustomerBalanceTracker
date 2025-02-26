@@ -1,12 +1,16 @@
+
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Achievement } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Award } from "lucide-react";
+import { Loader2, Award, Lock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatedContainer, AnimatedListItem } from "@/components/ui/animated-container";
 import { motion } from "framer-motion";
 import { useEffect } from 'react';
+import { Progress } from "@/components/ui/progress";
+
+const TOTAL_ACHIEVEMENTS = 5; // Gesamtzahl der verfügbaren Achievements
 
 export default function AchievementsPage() {
   const { user } = useAuth();
@@ -22,14 +26,21 @@ export default function AchievementsPage() {
 
   if (!user) return null;
 
+  const progress = (achievements?.length || 0) / TOTAL_ACHIEVEMENTS * 100;
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <h1 className="text-xl font-bold">Errungenschaften</h1>
           <div>
-            <Badge variant="outline" className="font-normal">{achievements?.length || 0} Freigeschaltet</Badge>
+            <Badge variant="outline" className="font-normal">
+              {achievements?.length || 0} von {TOTAL_ACHIEVEMENTS} Freigeschaltet
+            </Badge>
           </div>
+        </div>
+        <div className="container mx-auto px-4 pb-4">
+          <Progress value={progress} className="h-2" />
         </div>
       </header>
 
@@ -51,6 +62,7 @@ export default function AchievementsPage() {
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Freigeschaltete Achievements */}
             {achievements?.map((achievement) => (
               <AnimatedListItem key={achievement.id}>
                 <div className="flex items-center justify-between p-4 border rounded-lg bg-white/80 backdrop-blur-sm hover:bg-accent/50 transition-colors">
@@ -62,6 +74,21 @@ export default function AchievementsPage() {
                       <p className="text-xs text-muted-foreground mt-1">
                         Freigeschaltet {formatDistanceToNow(new Date(achievement.unlockedAt), { addSuffix: true })}
                       </p>
+                    </div>
+                  </div>
+                </div>
+              </AnimatedListItem>
+            ))}
+
+            {/* Noch nicht freigeschaltete Achievements */}
+            {Array.from({ length: TOTAL_ACHIEVEMENTS - (achievements?.length || 0) }).map((_, index) => (
+              <AnimatedListItem key={`locked-${index}`}>
+                <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                  <div className="flex items-start gap-4">
+                    <Lock className="h-6 w-6 text-muted-foreground mt-1" />
+                    <div>
+                      <p className="font-medium text-muted-foreground">???</p>
+                      <p className="text-sm text-muted-foreground">Diese Errungenschaft ist noch gesperrt</p>
                     </div>
                   </div>
                 </div>
