@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
-import { storage, ACHIEVEMENTS } from "./storage";
+import { storage } from "./storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -62,12 +62,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(points);
   });
 
-  // Get user achievements
-  app.get("/api/achievements", requireAuth, async (req, res) => {
-    const achievements = await storage.getAchievements(req.user!.id);
-    res.json(achievements);
-  });
-
   // Balance management route
   app.post("/api/balance", requireCashier, async (req, res) => {
     const { id, amount, type, description } = req.body;
@@ -90,72 +84,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createTransaction({ userId: id, amount, type, description });
 
       if (type === "deposit") {
-        try {
-          // Punkte für Einzahlung
-          const pointsToAward = Math.floor(amount / 200);
-          if (pointsToAward > 0) {
-            await storage.addPoints(id, pointsToAward, `Punkte für ${amount / 100}€ Einzahlung`);
-          }
-
-          // Achievement: Erster Einzahler
-          const firstDeposit = await storage.unlockAchievement(
-            id,
-            ACHIEVEMENTS.FIRST_DEPOSIT.type,
-            ACHIEVEMENTS.FIRST_DEPOSIT.name,
-            ACHIEVEMENTS.FIRST_DEPOSIT.description
-          );
-          if (firstDeposit) {
-            console.log('Achievement unlocked:', firstDeposit);
-            await storage.addPoints(id, 5, "Erfolg freigeschaltet: Erster Einzahler");
-          }
-
-          // Achievement: Großzahler (10€ oder mehr)
-          if (amount >= 1000) {
-            const bigSpender = await storage.unlockAchievement(
-              id,
-              ACHIEVEMENTS.BIG_SPENDER.type,
-              ACHIEVEMENTS.BIG_SPENDER.name,
-              ACHIEVEMENTS.BIG_SPENDER.description
-            );
-            if (bigSpender) {
-              console.log('Achievement unlocked:', bigSpender);
-              await storage.addPoints(id, 5, "Erfolg freigeschaltet: Großzahler");
-            }
-          }
-
-          // Aktualisierte Benutzerpunkte abrufen
-          const updatedUserData = await storage.getUser(id);
-          if (!updatedUserData) throw new Error("User not found");
-
-          // Achievement: 100 Punkte
-          if (updatedUserData.points >= 100) {
-            const points100 = await storage.unlockAchievement(
-              id,
-              ACHIEVEMENTS.POINTS_100.type,
-              ACHIEVEMENTS.POINTS_100.name,
-              ACHIEVEMENTS.POINTS_100.description
-            );
-            if (points100) {
-              console.log('Achievement unlocked:', points100);
-              await storage.addPoints(id, 5, "Erfolg freigeschaltet: 100 Punkte erreicht");
-            }
-          }
-
-          // Achievement: 500 Punkte
-          if (updatedUserData.points >= 500) {
-            const points500 = await storage.unlockAchievement(
-              id,
-              ACHIEVEMENTS.POINTS_500.type,
-              ACHIEVEMENTS.POINTS_500.name,
-              ACHIEVEMENTS.POINTS_500.description
-            );
-            if (points500) {
-              console.log('Achievement unlocked:', points500);
-              await storage.addPoints(id, 5, "Erfolg freigeschaltet: 500 Punkte erreicht");
-            }
-          }
-        } catch (error) {
-          console.error("Error processing achievements:", error);
+        // Punkte für Einzahlung
+        const pointsToAward = Math.floor(amount / 200);
+        if (pointsToAward > 0) {
+          await storage.addPoints(id, pointsToAward, `Punkte für ${amount / 100}€ Einzahlung`);
         }
       }
 

@@ -1,5 +1,5 @@
-import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint, Achievement, InsertAchievement } from "@shared/schema";
-import { users as usersTable, transactions, points, achievements } from "@shared/schema";
+import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint } from "@shared/schema";
+import { users as usersTable, transactions, points } from "@shared/schema";
 import { db } from "./db";
 import { eq, ilike, sql, desc } from "drizzle-orm";
 import session from "express-session";
@@ -18,9 +18,6 @@ export interface IStorage {
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   addPoints(id: number, amount: number, reason: string): Promise<Point>;
   getPoints(id: number): Promise<Point[]>;
-  unlockAchievement(id: number, type: string, name: string, description: string): Promise<Achievement | null>;
-  getAchievements(id: number): Promise<Achievement[]>;
-  hasAchievement(id: number, type: string): Promise<boolean>;
   searchUsers(query: string): Promise<User[]>;
   sessionStore: session.Store;
 }
@@ -176,88 +173,6 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
-
-  async hasAchievement(id: number, type: string): Promise<boolean> {
-    try {
-      const result = await db
-        .select()
-        .from(achievements)
-        .where(eq(achievements.userId, id))
-        .where(eq(achievements.type, type));
-
-      return result.length > 0;
-    } catch (error) {
-      console.error('Error checking achievement:', error);
-      throw error;
-    }
-  }
-
-  async unlockAchievement(id: number, type: string, name: string, description: string): Promise<Achievement | null> {
-    try {
-      const hasAchievement = await this.hasAchievement(id, type);
-      if (hasAchievement) {
-        console.log(`Achievement ${type} already unlocked for user ${id}`);
-        return null;
-      }
-
-      const [achievement] = await db
-        .insert(achievements)
-        .values({
-          userId: id,
-          type,
-          name,
-          description
-        })
-        .returning();
-
-      console.log(`Unlocked achievement ${type} for user ${id}`);
-      return achievement;
-    } catch (error) {
-      console.error('Error unlocking achievement:', error);
-      throw error;
-    }
-  }
-
-  async getAchievements(id: number): Promise<Achievement[]> {
-    try {
-      return await db
-        .select()
-        .from(achievements)
-        .where(eq(achievements.userId, id))
-        .orderBy(achievements.unlockedAt);
-    } catch (error) {
-      console.error('Error getting achievements:', error);
-      throw error;
-    }
-  }
 }
-
-export const ACHIEVEMENTS = {
-  POINTS_100: {
-    type: "points_100",
-    name: "Punktesammler",
-    description: "Sammle 100 Punkte"
-  },
-  POINTS_500: {
-    type: "points_500", 
-    name: "Punkteprofi",
-    description: "Sammle 500 Punkte"
-  },
-  FIRST_DEPOSIT: {
-    type: "first_deposit",
-    name: "Erster Einzahler",
-    description: "Tätige deine erste Einzahlung"
-  },
-  BIG_SPENDER: {
-    type: "big_spender",
-    name: "Großzahler",
-    description: "Tätige eine Einzahlung von mindestens 10€"
-  },
-  REGULAR_USER: {
-    type: "regular_user",
-    name: "Stammkunde", 
-    description: "Nutze die App 5 Tage in Folge"
-  }
-};
 
 export const storage = new DatabaseStorage();
