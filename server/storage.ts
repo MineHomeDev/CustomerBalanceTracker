@@ -194,13 +194,17 @@ async unlockAchievement(userId: number, type: string, name: string, description:
       const existing = await this.hasAchievement(userId, type);
       if (existing) {
         console.log("Achievement already exists");
-        throw new Error("Achievement already unlocked");
+        return null;
       }
 
       // Füge Achievement hinzu
       const [achievement] = await db
         .insert(achievements)
         .values({
+          userId,
+          type,
+          name,
+          description,
           userId,
           type,
           name,

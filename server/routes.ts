@@ -102,22 +102,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Big spender achievement (10€ or more)
-        const hasAchievement = await storage.hasAchievement(userId, ACHIEVEMENTS.BIG_SPENDER.type);
-        console.log("Achievement check:", { amount, userId, hasAchievement });
-        
-        if (amount >= 1000 && !hasAchievement) {
-          console.log("Trying to unlock big_spender achievement");
-          try {
+        if (amount >= 1000) {
+          console.log("Checking big spender achievement. Amount:", amount);
+          const hasAchievement = await storage.hasAchievement(userId, ACHIEVEMENTS.BIG_SPENDER.type);
+          console.log("Has achievement check:", hasAchievement);
+          
+          if (!hasAchievement) {
+            console.log("Unlocking big spender achievement");
             const achievement = await storage.unlockAchievement(
               userId,
               ACHIEVEMENTS.BIG_SPENDER.type,
               ACHIEVEMENTS.BIG_SPENDER.name,
               ACHIEVEMENTS.BIG_SPENDER.description
             );
-            console.log("Achievement unlocked:", achievement);
-            await storage.addPoints(userId, 5, "Erfolg freigeschaltet: Großzahler");
-          } catch (error) {
-            console.error("Error unlocking achievement:", error);
+            
+            if (achievement) {
+              console.log("Achievement unlocked successfully:", achievement);
+              await storage.addPoints(userId, 5, "Erfolg freigeschaltet: Großzahler");
+            }
           }
         }
 
