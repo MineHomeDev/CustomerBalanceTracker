@@ -50,6 +50,7 @@ export default function Dashboard() {
           <Card className="border-2">
             <CardHeader>
               <CardTitle className="text-lg text-muted-foreground">Kontoübersicht</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">Angemeldet als: {user.firstName} {user.lastName}</p>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col md:flex-row md:items-center gap-6">
@@ -81,7 +82,6 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">Angemeldet als: {user.firstName} {user.lastName}</p>
                 </div>
                 <div className="flex justify-center md:flex-1">
                   <QRCodeGenerator />
