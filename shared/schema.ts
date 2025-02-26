@@ -9,7 +9,7 @@ export const users = pgTable("users", {
   lastName: text("last_name").notNull(),
   dateOfBirth: date("date_of_birth").notNull(),
   password: text("password").notNull(),
-  balance: integer("balance").notNull().default(0),
+  balance: decimal("balance", { precision: 10, scale: 2 }).notNull().default("0"),
   isCashier: boolean("is_cashier").notNull().default(false),
   points: integer("points").notNull().default(0),
   qrCodeId: text("qr_code_id").notNull().unique()

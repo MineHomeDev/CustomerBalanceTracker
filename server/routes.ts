@@ -102,7 +102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Big spender achievement (10€ or more)
-        if (amount >= 1000 && !(await storage.hasAchievement(userId, ACHIEVEMENTS.BIG_SPENDER.type))) {
+        if (amount >= 10 && !(await storage.hasAchievement(userId, ACHIEVEMENTS.BIG_SPENDER.type))) {
           console.log("Unlocking big_spender achievement for amount:", amount);
           await storage.unlockAchievement(
             userId,
@@ -142,7 +142,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const updatedUser = await storage.updateBalance(userId, newBalance);
       res.json(updatedUser);
     } catch (error) {
       console.error('Balance update error:', error);
