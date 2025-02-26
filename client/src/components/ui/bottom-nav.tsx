@@ -4,7 +4,7 @@ import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Home, History, QrCode } from "lucide-react";
+import { Home, History, QrCode, User } from "lucide-react";
 
 export function BottomNav() {
   const { user } = useAuth();
@@ -50,6 +50,22 @@ export function BottomNav() {
             </a>
           </Link>
 
+          <Link href="/transactions">
+            <a className={cn(
+              "flex flex-col items-center p-2 rounded-lg transition-colors relative",
+              location === "/transactions" ? "text-primary" : "text-muted-foreground hover:text-primary"
+            )}>
+              <History className="h-6 w-6" />
+              <span className="text-xs mt-1">Verlauf</span>
+              {location === "/transactions" && (
+                <motion.div
+                  layoutId="activeIndicator"
+                  className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
+                />
+              )}
+            </a>
+          </Link>
+
           {user.isCashier && (
             <Link href="/cashier">
               <a className={cn(
@@ -68,14 +84,14 @@ export function BottomNav() {
             </Link>
           )}
 
-          <Link href="/transactions">
+          <Link href="/profile">
             <a className={cn(
               "flex flex-col items-center p-2 rounded-lg transition-colors relative",
-              location === "/transactions" ? "text-primary" : "text-muted-foreground hover:text-primary"
+              location === "/profile" ? "text-primary" : "text-muted-foreground hover:text-primary"
             )}>
-              <History className="h-6 w-6" />
-              <span className="text-xs mt-1">Verlauf</span>
-              {location === "/transactions" && (
+              <User className="h-6 w-6" />
+              <span className="text-xs mt-1">Profil</span>
+              {location === "/profile" && (
                 <motion.div
                   layoutId="activeIndicator"
                   className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
