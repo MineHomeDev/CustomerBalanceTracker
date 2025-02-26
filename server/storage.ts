@@ -5,13 +5,14 @@ import { eq, ilike, sql, desc } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
+import crypto from 'crypto'; // Added crypto import
 
 const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  getUserByQRCodeId(qrCodeId: string): Promise<User | undefined>;
+  getUserByQRCodeId(qrCodeId: string): Promise<User | undefined>; // This might need adjustments
   createUser(user: InsertUser): Promise<User>;
   updateBalance(id: number, newBalance: number): Promise<User>;
   getTransactions(id: number): Promise<Transaction[]>;
@@ -54,7 +55,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByQRCodeId(qrCodeId: string): Promise<User | undefined> {
     try {
-      const [user] = await db.select().from(usersTable).where(eq(usersTable.qrCodeId, qrCodeId));
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.depositQrCodeId, qrCodeId) .or(eq(usersTable.withdrawQrCodeId, qrCodeId))); //modified
       return user;
     } catch (error) {
       console.error('Error getting user by QR code ID:', error);
@@ -78,13 +79,17 @@ export class DatabaseStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     try {
+      const depositQrCodeId = crypto.randomInt(10000000, 99999999).toString();
+      const withdrawQrCodeId = crypto.randomInt(10000000, 99999999).toString();
       const [user] = await db
         .insert(usersTable)
         .values({
           ...insertUser,
           balance: 0,
           isCashier: insertUser.isCashier || false,
-          points: 0
+          points: 0,
+          depositQrCodeId,
+          withdrawQrCodeId
         })
         .returning();
       return user;
