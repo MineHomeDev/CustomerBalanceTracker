@@ -17,7 +17,7 @@ const AVAILABLE_ACHIEVEMENTS = [
   },
   {
     type: "big_spender",
-    name: "Großer Spender",
+    name: "Großzahler",
     description: "Tätige eine Einzahlung von mindestens 10€"
   },
   {
