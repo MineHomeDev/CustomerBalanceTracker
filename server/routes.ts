@@ -89,14 +89,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createTransaction({ userId, amount, type, description });
 
       if (type === "deposit") {
+        // First deposit achievement
+        if (!(await storage.hasAchievement(userId, "first_deposit"))) {
+          await storage.unlockAchievement(
+            userId, 
+            ACHIEVEMENTS.FIRST_DEPOSIT.type,
+            ACHIEVEMENTS.FIRST_DEPOSIT.name,
+            ACHIEVEMENTS.FIRST_DEPOSIT.description
+          );
+        }
+
+        // Big spender achievement (50€ or more)
+        if (amount >= 5000 && !(await storage.hasAchievement(userId, "big_spender"))) {
+          await storage.unlockAchievement(
+            userId,
+            ACHIEVEMENTS.BIG_SPENDER.type,
+            ACHIEVEMENTS.BIG_SPENDER.name,
+            ACHIEVEMENTS.BIG_SPENDER.description
+          );
+        }
+
         const pointsToAward = Math.floor(amount / 200);
         if (pointsToAward > 0) {
           await storage.addPoints(userId, pointsToAward, `Punkte für ${amount / 100}€ Einzahlung`);
         }
 
         const totalPoints = user.points + pointsToAward;
+        
+        // Points achievements
         if (totalPoints >= 100 && !(await storage.hasAchievement(userId, "points_100"))) {
-          await storage.unlockAchievement(userId, "points_100", "Punktesammler", "Sammle 100 Punkte");
+          await storage.unlockAchievement(
+            userId,
+            ACHIEVEMENTS.POINTS_100.type,
+            ACHIEVEMENTS.POINTS_100.name,
+            ACHIEVEMENTS.POINTS_100.description
+          );
+        }
+        
+        if (totalPoints >= 500 && !(await storage.hasAchievement(userId, "points_500"))) {
+          await storage.unlockAchievement(
+            userId,
+            ACHIEVEMENTS.POINTS_500.type,
+            ACHIEVEMENTS.POINTS_500.name,
+            ACHIEVEMENTS.POINTS_500.description
+          );
         }
       }
 
