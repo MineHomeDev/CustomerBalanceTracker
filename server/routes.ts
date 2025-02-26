@@ -90,65 +90,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createTransaction({ userId: id, amount, type, description });
 
       if (type === "deposit") {
-        // First deposit achievement
-        if (!(await storage.hasAchievement(id, ACHIEVEMENTS.FIRST_DEPOSIT.type))) {
-          await storage.unlockAchievement(
-            id, 
+        try {
+          // Punkte für Einzahlung
+          const pointsToAward = Math.floor(amount / 200);
+          if (pointsToAward > 0) {
+            await storage.addPoints(id, pointsToAward, `Punkte für ${amount / 100}€ Einzahlung`);
+          }
+
+          // Achievement: Erster Einzahler
+          const firstDeposit = await storage.unlockAchievement(
+            id,
             ACHIEVEMENTS.FIRST_DEPOSIT.type,
             ACHIEVEMENTS.FIRST_DEPOSIT.name,
             ACHIEVEMENTS.FIRST_DEPOSIT.description
           );
-          await storage.addPoints(id, 5, "Erfolg freigeschaltet: Erster Einzahler");
-        }
+          if (firstDeposit) {
+            await storage.addPoints(id, 5, "Erfolg freigeschaltet: Erster Einzahler");
+          }
 
-        // Big spender achievement (10€ or more)
-        if (amount >= 1000) {
-          console.log("Checking big spender achievement. Amount:", amount);
-          const hasAchievement = await storage.hasAchievement(userId, ACHIEVEMENTS.BIG_SPENDER.type);
-          console.log("Has achievement check:", hasAchievement);
-          
-          if (!hasAchievement) {
-            console.log("Unlocking big spender achievement");
-            const achievement = await storage.unlockAchievement(
-              userId,
+          // Achievement: Großzahler (10€ oder mehr)
+          if (amount >= 1000) {
+            const bigSpender = await storage.unlockAchievement(
+              id,
               ACHIEVEMENTS.BIG_SPENDER.type,
               ACHIEVEMENTS.BIG_SPENDER.name,
               ACHIEVEMENTS.BIG_SPENDER.description
             );
-            
-            if (achievement) {
-              console.log("Achievement unlocked successfully:", achievement);
-              await storage.addPoints(userId, 5, "Erfolg freigeschaltet: Großzahler");
+            if (bigSpender) {
+              await storage.addPoints(id, 5, "Erfolg freigeschaltet: Großzahler");
             }
           }
-        }
 
-        const pointsToAward = Math.floor(amount / 200);
-        if (pointsToAward > 0) {
-          await storage.addPoints(userId, pointsToAward, `Punkte für ${amount / 100}€ Einzahlung`);
-        }
+          // Aktualisierte Benutzerpunkte abrufen
+          const updatedUserData = await storage.getUser(id);
+          if (!updatedUserData) throw new Error("User not found");
 
-        const totalPoints = user.points + pointsToAward;
+          // Achievement: 100 Punkte
+          if (updatedUserData.points >= 100) {
+            const points100 = await storage.unlockAchievement(
+              id,
+              ACHIEVEMENTS.POINTS_100.type,
+              ACHIEVEMENTS.POINTS_100.name,
+              ACHIEVEMENTS.POINTS_100.description
+            );
+            if (points100) {
+              await storage.addPoints(id, 5, "Erfolg freigeschaltet: 100 Punkte erreicht");
+            }
+          }
 
-        // Points achievements
-        if (totalPoints >= 100 && !(await storage.hasAchievement(userId, "points_100"))) {
-          await storage.unlockAchievement(
-            userId,
-            ACHIEVEMENTS.POINTS_100.type,
-            ACHIEVEMENTS.POINTS_100.name,
-            ACHIEVEMENTS.POINTS_100.description
-          );
-          await storage.addPoints(userId, 5, "Erfolg freigeschaltet: 100 Punkte erreicht");
-        }
-
-        if (totalPoints >= 500 && !(await storage.hasAchievement(userId, "points_500"))) {
-          await storage.unlockAchievement(
-            userId,
-            ACHIEVEMENTS.POINTS_500.type,
-            ACHIEVEMENTS.POINTS_500.name,
-            ACHIEVEMENTS.POINTS_500.description
-          );
-          await storage.addPoints(userId, 5, "Erfolg freigeschaltet: 500 Punkte erreicht");
+          // Achievement: 500 Punkte
+          if (updatedUserData.points >= 500) {
+            const points500 = await storage.unlockAchievement(
+              id,
+              ACHIEVEMENTS.POINTS_500.type,
+              ACHIEVEMENTS.POINTS_500.name,
+              ACHIEVEMENTS.POINTS_500.description
+            );
+            if (points500) {
+              await storage.addPoints(id, 5, "Erfolg freigeschaltet: 500 Punkte erreicht");
+            }
+          }
+        } catch (error) {
+          console.error("Error processing achievements:", error);
         }
       }
 

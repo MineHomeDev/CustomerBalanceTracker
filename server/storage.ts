@@ -1,3 +1,4 @@
+
 import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint, Achievement, InsertAchievement } from "@shared/schema";
 import { users as usersTable, transactions, points, achievements } from "@shared/schema";
 import { db } from "./db";
@@ -13,14 +14,14 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByQRCodeId(qrCodeId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateBalance(userId: number, newBalance: number): Promise<User>;
-  getTransactions(userId: number): Promise<Transaction[]>;
+  updateBalance(id: number, newBalance: number): Promise<User>;
+  getTransactions(id: number): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
-  addPoints(userId: number, amount: number, reason: string): Promise<Point>;
-  getPoints(userId: number): Promise<Point[]>;
-  unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement>;
-  getAchievements(userId: number): Promise<Achievement[]>;
-  hasAchievement(userId: number, type: string): Promise<boolean>;
+  addPoints(id: number, amount: number, reason: string): Promise<Point>;
+  getPoints(id: number): Promise<Point[]>;
+  unlockAchievement(id: number, type: string, name: string, description: string): Promise<Achievement | null>;
+  getAchievements(id: number): Promise<Achievement[]>;
+  hasAchievement(id: number, type: string): Promise<boolean>;
   searchUsers(query: string): Promise<User[]>;
   sessionStore: session.Store;
 }
@@ -55,15 +56,23 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getUserByQRCodeId(qrCodeId: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.qrCodeId, qrCodeId));
+      return user;
+    } catch (error) {
+      console.error('Error getting user by QR code ID:', error);
+      throw error;
+    }
+  }
+
   async searchUsers(query: string): Promise<User[]> {
     try {
-      console.log('Executing user search:', query);
       const results = await db
         .select()
         .from(usersTable)
         .where(ilike(usersTable.email, `%${query}%`))
         .limit(10);
-      console.log('Search results:', results);
       return results;
     } catch (error) {
       console.error('Search error:', error);
@@ -89,12 +98,12 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateBalance(userId: number, newBalance: number): Promise<User> {
+  async updateBalance(id: number, newBalance: number): Promise<User> {
     try {
       const [user] = await db
         .update(usersTable)
         .set({ balance: newBalance })
-        .where(eq(usersTable.id, userId))
+        .where(eq(usersTable.id, id))
         .returning();
 
       if (!user) throw new Error("User not found");
@@ -105,12 +114,12 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getTransactions(userId: number): Promise<Transaction[]> {
+  async getTransactions(id: number): Promise<Transaction[]> {
     try {
       return await db
         .select()
         .from(transactions)
-        .where(eq(transactions.userId, userId))
+        .where(eq(transactions.userId, id))
         .orderBy(desc(transactions.timestamp));
     } catch (error) {
       console.error('Error getting transactions:', error);
@@ -131,19 +140,19 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async addPoints(userId: number, amount: number, reason: string): Promise<Point> {
+  async addPoints(id: number, amount: number, reason: string): Promise<Point> {
     try {
       await db
         .update(usersTable)
         .set({ 
           points: sql`${usersTable.points} + ${amount}` 
         })
-        .where(eq(usersTable.id, userId));
+        .where(eq(usersTable.id, id));
 
       const [point] = await db
         .insert(points)
         .values({
-          userId,
+          userId: id,
           amount,
           reason,
         })
@@ -156,12 +165,12 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getPoints(userId: number): Promise<Point[]> {
+  async getPoints(id: number): Promise<Point[]> {
     try {
       return await db
         .select()
         .from(points)
-        .where(eq(points.userId, userId))
+        .where(eq(points.userId, id))
         .orderBy(points.timestamp);
     } catch (error) {
       console.error('Error getting points:', error);
@@ -171,48 +180,38 @@ export class DatabaseStorage implements IStorage {
 
   async hasAchievement(id: number, type: string): Promise<boolean> {
     try {
-      const [achievement] = await db
+      const result = await db
         .select()
         .from(achievements)
         .where(eq(achievements.userId, id))
         .where(eq(achievements.type, type));
-      console.log("Checking achievement:", { id, type, hasAchievement: !!achievement });
-      return !!achievement;
+      
+      return result.length > 0;
     } catch (error) {
       console.error('Error checking achievement:', error);
       throw error;
     }
   }
 
-  
-
-async unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement> {
+  async unlockAchievement(id: number, type: string, name: string, description: string): Promise<Achievement | null> {
     try {
-      console.log("Unlocking achievement:", { userId, type, name, description });
-      
-      // Prüfe ob Achievement bereits existiert
-      const existing = await this.hasAchievement(userId, type);
-      if (existing) {
-        console.log("Achievement already exists");
+      const hasAchievement = await this.hasAchievement(id, type);
+      if (hasAchievement) {
+        console.log(`Achievement ${type} already unlocked for user ${id}`);
         return null;
       }
 
-      // Füge Achievement hinzu
       const [achievement] = await db
         .insert(achievements)
         .values({
-          userId,
+          userId: id,
           type,
           name,
-          description,
-          userId,
-          type,
-          name,
-          description,
+          description
         })
         .returning();
 
-      console.log("Achievement saved:", achievement);
+      console.log(`Unlocked achievement ${type} for user ${id}`);
       return achievement;
     } catch (error) {
       console.error('Error unlocking achievement:', error);
@@ -220,24 +219,15 @@ async unlockAchievement(userId: number, type: string, name: string, description:
     }
   }
 
-  async getAchievements(userId: number): Promise<Achievement[]> {
+  async getAchievements(id: number): Promise<Achievement[]> {
     try {
       return await db
         .select()
         .from(achievements)
-        .where(eq(achievements.userId, userId))
+        .where(eq(achievements.userId, id))
         .orderBy(achievements.unlockedAt);
     } catch (error) {
       console.error('Error getting achievements:', error);
-      throw error;
-    }
-  }
-  async getUserByQRCodeId(qrCodeId: string): Promise<User | undefined> {
-    try {
-      const [user] = await db.select().from(usersTable).where(eq(usersTable.qrCodeId, qrCodeId));
-      return user;
-    } catch (error) {
-      console.error('Error getting user by QR code ID:', error);
       throw error;
     }
   }
