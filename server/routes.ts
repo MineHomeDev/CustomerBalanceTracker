@@ -70,10 +70,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Balance management route
   app.post("/api/balance", requireCashier, async (req, res) => {
-    const { userId, amount, type, description } = req.body;
+    const { id, amount, type, description } = req.body;
 
     try {
-      const user = await storage.getUser(userId);
+      const user = await storage.getUser(id);
       if (!user) {
         return res.status(404).json({ error: "Benutzer nicht gefunden" });
       }
@@ -86,19 +86,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Nicht genügend Guthaben" });
       }
 
-      const updatedUser = await storage.updateBalance(userId, newBalance);
-      await storage.createTransaction({ userId, amount, type, description });
+      const updatedUser = await storage.updateBalance(id, newBalance);
+      await storage.createTransaction({ userId: id, amount, type, description });
 
       if (type === "deposit") {
         // First deposit achievement
-        if (!(await storage.hasAchievement(userId, ACHIEVEMENTS.FIRST_DEPOSIT.type))) {
+        if (!(await storage.hasAchievement(id, ACHIEVEMENTS.FIRST_DEPOSIT.type))) {
           await storage.unlockAchievement(
-            userId, 
+            id, 
             ACHIEVEMENTS.FIRST_DEPOSIT.type,
             ACHIEVEMENTS.FIRST_DEPOSIT.name,
             ACHIEVEMENTS.FIRST_DEPOSIT.description
           );
-          await storage.addPoints(userId, 5, "Erfolg freigeschaltet: Erster Einzahler");
+          await storage.addPoints(id, 5, "Erfolg freigeschaltet: Erster Einzahler");
         }
 
         // Big spender achievement (10€ or more)

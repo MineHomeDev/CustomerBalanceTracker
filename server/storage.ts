@@ -169,14 +169,14 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async hasAchievement(userId: number, type: string): Promise<boolean> {
+  async hasAchievement(id: number, type: string): Promise<boolean> {
     try {
       const [achievement] = await db
         .select()
         .from(achievements)
-        .where(eq(achievements.userId, userId))
+        .where(eq(achievements.userId, id))
         .where(eq(achievements.type, type));
-      console.log("Checking achievement:", { userId, type, hasAchievement: !!achievement });
+      console.log("Checking achievement:", { id, type, hasAchievement: !!achievement });
       return !!achievement;
     } catch (error) {
       console.error('Error checking achievement:', error);
