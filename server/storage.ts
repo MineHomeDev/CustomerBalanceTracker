@@ -183,34 +183,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Achievement constants
-const ACHIEVEMENTS = {
-  POINTS_100: {
-    type: "points_100",
-    name: "Punktesammler",
-    description: "Sammle 100 Punkte"
-  },
-  POINTS_500: {
-    type: "points_500", 
-    name: "Punkteprofi",
-    description: "Sammle 500 Punkte"
-  },
-  FIRST_DEPOSIT: {
-    type: "first_deposit",
-    name: "Erster Einzahler",
-    description: "Tätige deine erste Einzahlung"
-  },
-  BIG_SPENDER: {
-    type: "big_spender",
-    name: "Großzahler",
-    description: "Tätige eine Einzahlung von mindestens 10€"
-  },
-  REGULAR_USER: {
-    type: "regular_user",
-    name: "Stammkunde", 
-    description: "Nutze die App 5 Tage in Folge"
-  }
-};
+  
 
 async unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement> {
     try {
