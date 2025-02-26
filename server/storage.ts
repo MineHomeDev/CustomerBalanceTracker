@@ -188,6 +188,16 @@ export class DatabaseStorage implements IStorage {
 
 async unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement> {
     try {
+      console.log("Unlocking achievement:", { userId, type, name, description });
+      
+      // Prüfe ob Achievement bereits existiert
+      const existing = await this.hasAchievement(userId, type);
+      if (existing) {
+        console.log("Achievement already exists");
+        throw new Error("Achievement already unlocked");
+      }
+
+      // Füge Achievement hinzu
       const [achievement] = await db
         .insert(achievements)
         .values({
@@ -198,6 +208,7 @@ async unlockAchievement(userId: number, type: string, name: string, description:
         })
         .returning();
 
+      console.log("Achievement saved:", achievement);
       return achievement;
     } catch (error) {
       console.error('Error unlocking achievement:', error);
