@@ -12,8 +12,7 @@ export const users = pgTable("users", {
   balance: integer("balance").notNull().default(0),
   isCashier: boolean("is_cashier").notNull().default(false),
   points: integer("points").notNull().default(0),
-  depositQrCodeId: text("deposit_qr_code_id").notNull(),
-  withdrawQrCodeId: text("withdraw_qr_code_id").notNull()
+  qrCodeId: text("qr_code_id").notNull().unique()
 });
 
 export const transactions = pgTable("transactions", {
