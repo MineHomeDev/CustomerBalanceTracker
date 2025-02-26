@@ -1,12 +1,41 @@
+
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Achievement } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Award } from "lucide-react";
+import { Loader2, Award, Lock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatedContainer, AnimatedListItem } from "@/components/ui/animated-container";
 import { motion } from "framer-motion";
 import { useEffect } from 'react';
+
+const AVAILABLE_ACHIEVEMENTS = [
+  {
+    type: "first_deposit",
+    name: "Erster Einzahler",
+    description: "Tätige deine erste Einzahlung"
+  },
+  {
+    type: "big_spender",
+    name: "Großer Spender",
+    description: "Tätige eine Einzahlung von mindestens 50€"
+  },
+  {
+    type: "points_100",
+    name: "Punktesammler",
+    description: "Sammle 100 Punkte"
+  },
+  {
+    type: "points_500",
+    name: "Punkteprofi",
+    description: "Sammle 500 Punkte"
+  },
+  {
+    type: "regular_user",
+    name: "Stammkunde",
+    description: "Nutze die App 5 Tage in Folge"
+  }
+];
 
 export default function AchievementsPage() {
   const { user } = useAuth();
@@ -29,7 +58,7 @@ export default function AchievementsPage() {
           <h1 className="text-xl font-bold">Errungenschaften</h1>
           <div>
             <Badge variant="outline" className="font-normal">
-              {achievements?.length || 0} Erfolge
+              {achievements?.length || 0} von {AVAILABLE_ACHIEVEMENTS.length} freigeschaltet
             </Badge>
           </div>
         </div>
@@ -45,29 +74,43 @@ export default function AchievementsPage() {
               <Loader2 className="h-6 w-6 text-primary" />
             </motion.div>
           </div>
-        ) : achievements?.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">
-            Noch keine Errungenschaften freigeschaltet
-          </p>
         ) : (
           <div className="space-y-4">
-            {achievements?.map((achievement) => (
-              <AnimatedListItem key={achievement.id}>
-                <div className="flex items-center justify-between p-4 border rounded-lg bg-white/80 backdrop-blur-sm hover:bg-accent/50 transition-colors">
-                  <div className="flex items-start gap-4">
-                    <Award className="h-6 w-6 text-primary mt-1" />
-                    <div>
-                      <p className="font-medium">{achievement.name}</p>
-                      <p className="text-sm text-muted-foreground">{achievement.description}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Freigeschaltet {formatDistanceToNow(new Date(achievement.unlockedAt), { addSuffix: true })}
-                      </p>
+            {AVAILABLE_ACHIEVEMENTS.map((availableAchievement) => {
+              const unlockedAchievement = achievements?.find(
+                (a) => a.type === availableAchievement.type
+              );
+
+              return (
+                <AnimatedListItem key={availableAchievement.type}>
+                  <div className={`flex items-center justify-between p-4 border rounded-lg backdrop-blur-sm transition-colors ${
+                    unlockedAchievement ? 'bg-white/80 hover:bg-accent/50' : 'bg-muted/50'
+                  }`}>
+                    <div className="flex items-start gap-4">
+                      {unlockedAchievement ? (
+                        <Award className="h-6 w-6 text-primary mt-1" />
+                      ) : (
+                        <Lock className="h-6 w-6 text-muted-foreground mt-1" />
+                      )}
+                      <div>
+                        <p className={`font-medium ${!unlockedAchievement && 'text-muted-foreground'}`}>
+                          {availableAchievement.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {availableAchievement.description}
+                        </p>
+                        {unlockedAchievement && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Freigeschaltet {formatDistanceToNow(new Date(unlockedAchievement.unlockedAt), { addSuffix: true })}
+                          </p>
+                        )}
+                      </div>
                     </div>
+                    {unlockedAchievement && <Badge>Freigeschaltet</Badge>}
                   </div>
-                  <Badge>Freigeschaltet</Badge>
-                </div>
-              </AnimatedListItem>
-            ))}
+                </AnimatedListItem>
+              );
+            })}
           </div>
         )}
       </main>
