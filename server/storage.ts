@@ -1,4 +1,3 @@
-
 import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint, Achievement, InsertAchievement } from "@shared/schema";
 import { users as usersTable, transactions, points, achievements } from "@shared/schema";
 import { db } from "./db";
@@ -185,7 +184,7 @@ export class DatabaseStorage implements IStorage {
         .from(achievements)
         .where(eq(achievements.userId, id))
         .where(eq(achievements.type, type));
-      
+
       return result.length > 0;
     } catch (error) {
       console.error('Error checking achievement:', error);

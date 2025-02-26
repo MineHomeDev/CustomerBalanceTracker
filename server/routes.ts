@@ -105,6 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ACHIEVEMENTS.FIRST_DEPOSIT.description
           );
           if (firstDeposit) {
+            console.log('Achievement unlocked:', firstDeposit);
             await storage.addPoints(id, 5, "Erfolg freigeschaltet: Erster Einzahler");
           }
 
@@ -117,6 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ACHIEVEMENTS.BIG_SPENDER.description
             );
             if (bigSpender) {
+              console.log('Achievement unlocked:', bigSpender);
               await storage.addPoints(id, 5, "Erfolg freigeschaltet: Großzahler");
             }
           }
@@ -134,6 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ACHIEVEMENTS.POINTS_100.description
             );
             if (points100) {
+              console.log('Achievement unlocked:', points100);
               await storage.addPoints(id, 5, "Erfolg freigeschaltet: 100 Punkte erreicht");
             }
           }
@@ -147,6 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ACHIEVEMENTS.POINTS_500.description
             );
             if (points500) {
+              console.log('Achievement unlocked:', points500);
               await storage.addPoints(id, 5, "Erfolg freigeschaltet: 500 Punkte erreicht");
             }
           }
