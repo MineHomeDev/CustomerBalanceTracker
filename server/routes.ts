@@ -111,6 +111,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpunkt zum Befördern eines Benutzers zum Kassierer
+  app.post("/api/users/make-cashier", requireCashier, async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ error: "Benutzer-ID ist erforderlich" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "Benutzer nicht gefunden" });
+      }
+      
+      if (user.isCashier) {
+        return res.status(400).json({ error: "Benutzer ist bereits Kassierer" });
+      }
+      
+      const updatedUser = await storage.updateUserRole(userId, true);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Make cashier error:', error);
+      res.status(500).json({ error: 'Fehler beim Aktualisieren der Benutzerrolle' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

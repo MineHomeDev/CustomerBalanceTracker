@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogOut, UserIcon } from "lucide-react";
 import { BottomNav } from "@/components/ui/bottom-nav";
+import { CashierManager } from "@/components/cashier-manager";
 
 export function ProfilePage() {
   const { user, logoutMutation } = useAuth();
@@ -78,6 +79,17 @@ export function ProfilePage() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Kassierer-Manager nur für Kassierer anzeigen */}
+        {user.isCashier && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <CashierManager />
+          </motion.div>
+        )}
       </main>
 
       <BottomNav />

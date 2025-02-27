@@ -14,6 +14,7 @@ export interface IStorage {
   getUserByQRCodeId(qrCodeId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateBalance(userId: number, newBalance: number): Promise<User>;
+  updateUserRole(userId: number, isCashier: boolean): Promise<User>;
   getTransactions(userId: number): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   addPoints(userId: number, amount: number, reason: string): Promise<Point>;
@@ -172,6 +173,22 @@ export class DatabaseStorage implements IStorage {
       return user;
     } catch (error) {
       console.error('Error getting user by QR code ID:', error);
+      throw error;
+    }
+  }
+
+  async updateUserRole(userId: number, isCashier: boolean): Promise<User> {
+    try {
+      const [user] = await db
+        .update(usersTable)
+        .set({ isCashier })
+        .where(eq(usersTable.id, userId))
+        .returning();
+
+      if (!user) throw new Error("User not found");
+      return user;
+    } catch (error) {
+      console.error('Error updating user role:', error);
       throw error;
     }
   }
