@@ -126,7 +126,7 @@ function RegisterForm() {
       dateOfBirth: "",
       password: "",
       passwordConfirm: "",
-      isCashier: false,
+      isCashier: false, // Immer auf false gesetzt, da die Option entfernt wurde
     },
   });
 
@@ -219,24 +219,7 @@ function RegisterForm() {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="isCashier"
-          render={({ field }) => (
-            <FormItem className="flex items-center space-x-2">
-              <FormControl>
-                <Input
-                  type="checkbox"
-                  checked={field.value}
-                  onChange={(e) => field.onChange(e.target.checked)}
-                  className="w-4 h-4"
-                />
-              </FormControl>
-              <FormLabel className="!mt-0">Als Kassierer registrieren</FormLabel>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Die Option "Als Kassierer registrieren" wurde entfernt */}
 
         <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
           {registerMutation.isPending ? "Konto wird erstellt..." : "Konto erstellen"}
