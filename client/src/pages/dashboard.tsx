@@ -35,17 +35,8 @@ export default function Dashboard() {
               <h1 className="text-xl font-bold">Balance System</h1>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => useAuth().logoutMutation.mutate()}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </motion.div>
+          <div className="ml-auto">
+            {/* Abmelde-Button wurde entfernt */}
           </div>
         </div>
       </header>
