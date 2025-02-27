@@ -1,6 +1,7 @@
+
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Wallet, QrCode, LogOut, History } from "lucide-react";
+import { Wallet, QrCode, History, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -69,14 +70,22 @@ export function BottomNav() {
                 </a>
               </Link>
             )}
-
-            <button
-              onClick={() => logoutMutation.mutate()}
-              className="flex flex-col items-center p-2 rounded-lg transition-colors text-muted-foreground hover:text-primary"
-            >
-              <LogOut className="h-6 w-6" />
-              <span className="text-xs mt-1">Abmelden</span>
-            </button>
+            
+            <Link href="/profile">
+              <a className={cn(
+                "flex flex-col items-center p-2 rounded-lg transition-colors relative",
+                location === "/profile" ? "text-primary" : "text-muted-foreground hover:text-primary"
+              )}>
+                <User className="h-6 w-6" />
+                <span className="text-xs mt-1">Profil</span>
+                {location === "/profile" && (
+                  <motion.div
+                    layoutId="activeIndicator"
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
+                  />
+                )}
+              </a>
+            </Link>
           </div>
         </nav>
       </motion.div>
