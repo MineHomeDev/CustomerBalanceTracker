@@ -3,14 +3,11 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, UserIcon, UserPlus } from "lucide-react";
+import { LogOut, UserIcon } from "lucide-react";
 import { BottomNav } from "@/components/ui/bottom-nav";
-import { useState } from "react";
-import { CreateCashierModal } from "@/components/create-cashier-modal";
 
 export function ProfilePage() {
   const { user, logoutMutation } = useAuth();
-  const [showCreateCashierModal, setShowCreateCashierModal] = useState(false);
 
   if (!user) return null;
 
@@ -58,20 +55,9 @@ export function ProfilePage() {
                 <p className="font-medium">{user.qrCodeId}</p>
               </div>
 
-              {user.isCashier && (
-                <Button 
-                  variant="outline" 
-                  className="w-full mt-6 mb-2"
-                  onClick={() => setShowCreateCashierModal(true)}
-                >
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Neuen Kassierer erstellen
-                </Button>
-              )}
-
               <Button 
                 variant="destructive" 
-                className="w-full" 
+                className="w-full mt-6" 
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
               >
@@ -93,13 +79,6 @@ export function ProfilePage() {
           </Card>
         </motion.div>
       </main>
-
-      {showCreateCashierModal && (
-        <CreateCashierModal 
-          isOpen={showCreateCashierModal} 
-          onClose={() => setShowCreateCashierModal(false)} 
-        />
-      )}
 
       <BottomNav />
     </div>

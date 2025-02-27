@@ -2,8 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { scrypt, randomBytes, randomInt } from "crypto";
-import { promisify } from "util";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -110,55 +108,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('QR code lookup error:', error);
       res.status(500).json({ error: 'Fehler bei der Benutzersuche' });
-    }
-  });
-
-  // Admin-Route zur Erstellung neuer Kassierer (nur für existierende Kassierer)
-  app.post("/api/admin/create-cashier", requireCashier, async (req, res) => {
-    try {
-      const existingUser = await storage.getUserByEmail(req.body.email);
-      if (existingUser) {
-        return res.status(400).send("E-Mail-Adresse wird bereits verwendet");
-      }
-
-      // Verwende die gleiche Funktion wie bei der Registrierung, um einen QR-Code zu generieren
-      const scryptAsync = promisify(scrypt);
-      
-      async function hashPassword(password: string) {
-        const salt = randomBytes(16).toString("hex");
-        const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-        return `${buf.toString("hex")}.${salt}`;
-      }
-      
-      async function generateUniqueQRCodeId(): Promise<string> {
-        while (true) {
-          const id = String(randomInt(10000000, 99999999));
-          const existingUser = await storage.getUserByQRCodeId(id);
-          if (!existingUser) {
-            return id;
-          }
-        }
-      }
-
-      const qrCodeId = await generateUniqueQRCodeId();
-      
-      // Kassierer erstellen (mit isCashier = true)
-      const userData = {
-        ...req.body,
-        isCashier: true,
-        password: await hashPassword(req.body.password),
-        qrCodeId
-      };
-      
-      const user = await storage.createUser(userData);
-      
-      // Sende den erstellten Benutzer zurück, ohne das Passwort
-      const { password, ...userWithoutPassword } = user;
-      res.status(201).json(userWithoutPassword);
-      
-    } catch (error) {
-      console.error('Error creating cashier:', error);
-      res.status(500).json({ error: 'Fehler bei der Erstellung des Kassierers' });
     }
   });
 
