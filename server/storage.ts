@@ -1,5 +1,5 @@
-import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint, Achievement, InsertAchievement } from "@shared/schema";
-import { users as usersTable, transactions, points, achievements } from "@shared/schema";
+import { User, InsertUser, Transaction, InsertTransaction, Point, InsertPoint } from "@shared/schema";
+import { users as usersTable, transactions, points } from "@shared/schema";
 import { db } from "./db";
 import { eq, ilike, sql, desc } from "drizzle-orm";
 import session from "express-session";
@@ -18,9 +18,6 @@ export interface IStorage {
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   addPoints(userId: number, amount: number, reason: string): Promise<Point>;
   getPoints(userId: number): Promise<Point[]>;
-  unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement>;
-  getAchievements(userId: number): Promise<Achievement[]>;
-  hasAchievement(userId: number, type: string): Promise<boolean>;
   searchUsers(query: string): Promise<User[]>;
   sessionStore: session.Store;
 }
@@ -162,58 +159,13 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(points)
         .where(eq(points.userId, userId))
-        .orderBy(points.timestamp);
+        .orderBy(desc(points.timestamp));
     } catch (error) {
       console.error('Error getting points:', error);
       throw error;
     }
   }
 
-  async hasAchievement(userId: number, type: string): Promise<boolean> {
-    try {
-      const [achievement] = await db
-        .select()
-        .from(achievements)
-        .where(eq(achievements.userId, userId))
-        .where(eq(achievements.type, type));
-      return !!achievement;
-    } catch (error) {
-      console.error('Error checking achievement:', error);
-      throw error;
-    }
-  }
-
-  async unlockAchievement(userId: number, type: string, name: string, description: string): Promise<Achievement> {
-    try {
-      const [achievement] = await db
-        .insert(achievements)
-        .values({
-          userId,
-          type,
-          name,
-          description,
-        })
-        .returning();
-
-      return achievement;
-    } catch (error) {
-      console.error('Error unlocking achievement:', error);
-      throw error;
-    }
-  }
-
-  async getAchievements(userId: number): Promise<Achievement[]> {
-    try {
-      return await db
-        .select()
-        .from(achievements)
-        .where(eq(achievements.userId, userId))
-        .orderBy(achievements.unlockedAt);
-    } catch (error) {
-      console.error('Error getting achievements:', error);
-      throw error;
-    }
-  }
   async getUserByQRCodeId(qrCodeId: string): Promise<User | undefined> {
     try {
       const [user] = await db.select().from(usersTable).where(eq(usersTable.qrCodeId, qrCodeId));

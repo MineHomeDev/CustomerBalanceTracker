@@ -62,12 +62,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(points);
   });
 
-  // Get user achievements
-  app.get("/api/achievements", requireAuth, async (req, res) => {
-    const achievements = await storage.getAchievements(req.user!.id);
-    res.json(achievements);
-  });
-
   // Balance management route
   app.post("/api/balance", requireCashier, async (req, res) => {
     const { userId, amount, type, description } = req.body;
@@ -92,11 +86,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const pointsToAward = Math.floor(amount / 200);
         if (pointsToAward > 0) {
           await storage.addPoints(userId, pointsToAward, `Punkte für ${amount / 100}€ Einzahlung`);
-        }
-
-        const totalPoints = user.points + pointsToAward;
-        if (totalPoints >= 100 && !(await storage.hasAchievement(userId, "points_100"))) {
-          await storage.unlockAchievement(userId, "points_100", "Punktesammler", "Sammle 100 Punkte");
         }
       }
 

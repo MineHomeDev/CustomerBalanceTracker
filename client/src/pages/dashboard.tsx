@@ -1,22 +1,15 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
-import { Achievement } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, Star, Wallet, LogOut } from "lucide-react";
+import { Star, Wallet, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatDistanceToNow } from "date-fns";
 import { QRCodeGenerator } from '@/components/QRCodeGenerator';
-import { AnimatedContainer, AnimatedListItem } from "@/components/ui/animated-container";
+import { AnimatedContainer } from "@/components/ui/animated-container";
 import { motion } from "framer-motion";
 import { getQueryFn } from "@/lib/queryClient";
 
 export default function Dashboard() {
   const { user } = useAuth();
-
-  const { data: achievements, isLoading: achievementsLoading } = useQuery<Achievement[]>({
-    queryKey: ["/api/achievements"],
-    refetchInterval: 10000,
-  });
 
   // Benutzer-Daten automatisch aktualisieren
   useQuery({
@@ -46,7 +39,6 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <Button 
                 variant="ghost" 
@@ -105,37 +97,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </AnimatedContainer>
-
-        {achievements && achievements.length > 0 && (
-          <AnimatedContainer>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="h-5 w-5" />
-                  Errungenschaften
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {achievements.map((achievement) => (
-                    <AnimatedListItem key={achievement.id}>
-                      <motion.div 
-                        className="p-4 border rounded-lg bg-accent/10"
-                        whileHover={{ scale: 1.02 }}
-                      >
-                        <h3 className="font-semibold">{achievement.name}</h3>
-                        <p className="text-sm text-muted-foreground">{achievement.description}</p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Freigeschaltet {formatDistanceToNow(new Date(achievement.unlockedAt), { addSuffix: true })}
-                        </p>
-                      </motion.div>
-                    </AnimatedListItem>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </AnimatedContainer>
-        )}
       </main>
     </div>
   );

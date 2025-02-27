@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Wallet, QrCode, LogOut, History, Award } from "lucide-react";
+import { Wallet, QrCode, LogOut, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -44,22 +44,6 @@ export function BottomNav() {
                 <History className="h-6 w-6" />
                 <span className="text-xs mt-1">Verlauf</span>
                 {location === "/transactions" && (
-                  <motion.div
-                    layoutId="activeIndicator"
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
-                  />
-                )}
-              </a>
-            </Link>
-
-            <Link href="/achievements">
-              <a className={cn(
-                "flex flex-col items-center p-2 rounded-lg transition-colors relative",
-                location === "/achievements" ? "text-primary" : "text-muted-foreground hover:text-primary"
-              )}>
-                <Award className="h-6 w-6" />
-                <span className="text-xs mt-1">Erfolge</span>
-                {location === "/achievements" && (
                   <motion.div
                     layoutId="activeIndicator"
                     className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
